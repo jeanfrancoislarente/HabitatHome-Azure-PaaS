@@ -1,2 +1,7 @@
 .vs/
 **/logs
+*.crt
+*.zip
+*.log
+*.p12
+*.jks
