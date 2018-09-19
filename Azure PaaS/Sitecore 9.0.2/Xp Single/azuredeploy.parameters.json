@@ -31,6 +31,30 @@
     },
     "allowInvalidClientCertificates": {
       "value": true
+    }, 
+    "modules": {
+      "value": {
+        "items": [
+
+          {
+            "name": "sxa",
+            "templateLink": "https://raw.githubusercontent.com/Sitecore/Sitecore-Azure-Quickstart-Templates/master/SXA/xp0/azuredeploy.json",
+            "parameters": {
+              "cmSxaMsDeployPackageUrl": "<URL of the WDP file *_sxa.scwdp.zip>",
+              "speMsDeployPackageUrl": "<URL of the WDP file *_spe.scwdp.zip>",
+              "solrSupportSxaMsDeployPackageUrl": "<URL of the WDP file SXA Solr Support *.scwdp.zip> Can be empty",
+              "templateLinkAccessToken": "Access token for the template if stored under the Azure storage. Otherwise should be empty string"
+            }
+          },
+          {
+            "name": "bootloader",
+            "templateLink": "<URL to the bootloader template>",
+            "parameters": {
+              "msDeployPackageUrl": "<URL to the wdp.zip file for specific version of Sitecore>"
+            }
+          }
+        ]
+      }
     }
   }
 }
