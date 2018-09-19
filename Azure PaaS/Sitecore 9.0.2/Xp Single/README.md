@@ -13,6 +13,9 @@ Resources provisioned:
 	  * Preconfigured Web Application, based on the provided WebDeploy package
   * Azure Search Service
   * Application Insights for diagnostics and monitoring
+  * Modules
+      * Module Bootloader
+	  * SPE and SXA 
 
 ## Parameters
 
@@ -27,6 +30,11 @@ Resources provisioned:
 | xcSingleMsDeployPackageUrl                | The HTTP(s) URL with SAS to a XConnect Single Web Deploy package.
 | authCertificateBlob                       | A Base64-encoded blob of the authentication certificate in PKCS #12 format.
 | authCertificatePassword                   | A password to the authentication certificate.
+
+## Modules
+
+[Sitecore Azure Modules Dcoumentation](https://github.com/Sitecore/Sitecore-Azure-Quickstart-Templates/blob/master/MODULES.md)
+[SPE and SXA Dcoumentation](https://github.com/Sitecore/Sitecore-Azure-Quickstart-Templates/tree/master/SXA%201.7.1/xp0)
 
 > **Note:**
 > * The **searchServiceLocation** parameter can be added to the `azuredeploy.parameters.json`
