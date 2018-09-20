@@ -35,6 +35,9 @@ Resources provisioned:
 
 [Sitecore Azure Modules Dcoumentation](https://github.com/Sitecore/Sitecore-Azure-Quickstart-Templates/blob/master/MODULES.md)
 [SPE and SXA Dcoumentation](https://github.com/Sitecore/Sitecore-Azure-Quickstart-Templates/tree/master/SXA%201.7.1/xp0)
+  Sitecore PowerShell Extension 4.7.2 for Sitecore 8 and 9 - https://dev.sitecore.net/~/media/4918E7ADAAF049F4BC7BA5B73561F24F.ashx
+  Sitecore Experience Accelerator WDP for 9.0              - https://dev.sitecore.net/~/media/F25F1A9FB9494646A2EB494F32AACC89.ashx
+
 
 > **Note:**
 > * The **searchServiceLocation** parameter can be added to the `azuredeploy.parameters.json`
