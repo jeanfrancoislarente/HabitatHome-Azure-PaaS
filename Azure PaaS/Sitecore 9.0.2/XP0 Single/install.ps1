@@ -17,4 +17,10 @@ $ArmParametersPath = "ABSOLUTE LOCAL PATH\azuredeploy.parameters.json"
 $ArmTemplateUrl = "URL for azuredeploy.json stored in public azure sotrage blob"
 $AzureRegion = "AZURE REGION"
 
-Start-SitecoreAzureDeployment -Location $AzureRegion -Name $Name -ArmTemplateUrl $ArmTemplateUrl -ArmParametersPath $ArmParametersPath -LicenseXmlPath $licensefilelocaiton -SetKeyValue @{"authCertificateBlob" = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($certfilelocation))} -Verbose
+Start-SitecoreAzureDeployment -Location $AzureRegion `
+							  -Name $Name `
+							  -ArmTemplateUrl $ArmTemplateUrl `
+							  -ArmParametersPath $ArmParametersPath `
+							  -LicenseXmlPath $licensefilelocaiton `
+							  -SetKeyValue @{"authCertificateBlob" = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($certfilelocation))} `
+							  -Verbose

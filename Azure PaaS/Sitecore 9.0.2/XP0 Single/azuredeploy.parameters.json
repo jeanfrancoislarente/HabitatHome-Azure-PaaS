@@ -38,12 +38,10 @@
 
           {
             "name": "sxa",
-            "templateLink": "https://raw.githubusercontent.com/Sitecore/Sitecore-Azure-Quickstart-Templates/master/SXA/xp0/azuredeploy.json",
+            "templateLink": "<URL to the SXA json ARM template>",
             "parameters": {
-              "cmSxaMsDeployPackageUrl": "<URL of the WDP file *_sxa.scwdp.zip>",
-              "speMsDeployPackageUrl": "<URL of the WDP file *_spe.scwdp.zip>",
-              "solrSupportSxaMsDeployPackageUrl": "Remove this text and leave blank",
-              "templateLinkAccessToken": "<Access token for the template if stored under the Azure storage. Otherwise should be empty string>"
+              "sxaMsDeployPackageUrl": "<URL to the SXA module's WDP>",
+              "speMsDeployPackageUrl": "<URL to the SPE module's WDP>"
             }
           },
           {
