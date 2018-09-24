@@ -11,7 +11,7 @@ Add-AzureRmAccount
 
 #Fill in Parameters
 $Name ="DEPLOYMENT ID"
-$certfilelocation = "ABSOLUTE LOCAL PATH\YOURCERT.pfx"
+$certfilepath = "ABSOLUTE LOCAL PATH\YOURCERT.pfx"
 $licensefilelocaiton = "ABSOLUTE LOCAL PATH\license.xml"
 $ArmParametersPath = "ABSOLUTE LOCAL PATH\azuredeploy.parameters.json"
 $ArmTemplateUrl = "URL for azuredeploy.json stored in public azure sotrage blob"
@@ -22,5 +22,5 @@ Start-SitecoreAzureDeployment -Location $AzureRegion `
 							  -ArmTemplateUrl $ArmTemplateUrl `
 							  -ArmParametersPath $ArmParametersPath `
 							  -LicenseXmlPath $licensefilelocaiton `
-							  -SetKeyValue @{"authCertificateBlob" = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($certfilelocation))} `
+							  -SetKeyValue @{"authCertificateBlob" = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($certfilepath))} `
 							  -Verbose

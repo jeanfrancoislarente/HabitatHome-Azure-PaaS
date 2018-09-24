@@ -45,6 +45,18 @@
             }
           },
           {
+            "name": "def",
+            "templateLink": "<URL to the DEF json ARM template>",
+            "parameters": {
+              "defDeployPackageUrl": "<URL to the def module's WDP>",
+              "defSitecoreDeployPackageUrl": "<URL to the defSitecore module's WDP>",
+              "defSqlDeployPackageUrl": "<URL to the defSql module's WDP>",
+              "defxConnectDeployPackageUrl": "<URL to the defxConnect module's WDP>",
+              "defDynamicsDeployPackageUrl": "<URL to the defDynamics module's WDP>",
+              "defDynamicsConnectDeployPackageUrl": "<URL to the defDynamicsConnect module's WDP>"
+            }
+          },
+          {
             "name": "bootloader",
             "templateLink": "<URL to the bootloader template (Located in addons folder)>",
             "parameters": {
