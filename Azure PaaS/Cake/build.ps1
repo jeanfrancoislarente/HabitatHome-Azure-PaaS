@@ -228,16 +228,13 @@ if (!(Test-Path $CAKE_EXE)) {
 # Add Persisent Azure Session
 $AzureModule = Get-Module -ListAvailable AzureRM
 if ($AzureModule -eq ""){
-# If the Azure PowerShell module is not present, install the module
     Install-Module -Name AzureRM
 }
-# Import the module into the PowerShell session
+
 Import-Module AzureRM
 
-# Turn on Azure Session Persistence
 Enable-AzureRmContextAutosave
 
-# Prompt User for Azure Credentials
 Add-AzureRmAccount
 
 # Build Cake arguments
