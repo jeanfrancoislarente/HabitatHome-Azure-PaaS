@@ -12,7 +12,7 @@ var target = Argument<string>("Target", "Default");
 var configuration = new Configuration();
 var cakeConsole = new CakeConsole();
 var configJsonFile = "cake-config.json";
-var unicornSyncScript = $"./scripts/Unicorn/Sync.ps1";
+//var unicornSyncScript = $"./scripts/Unicorn/Sync.ps1";
 
 /*===============================================
 ================ MAIN TASKS =====================
@@ -42,14 +42,17 @@ Task("Default")
 //.IsDependentOn("Rebuild-Core-Index")
 //.IsDependentOn("Rebuild-Master-Index")
 //.IsDependentOn("Rebuild-Web-Index");
+.IsDependentOn("Publish-YML");
+.IsDependentOn("Azure-Build");
+.IsDependentOn("Azure-Deploy");
 
-Task("Quick-Deploy")
-.WithCriteria(configuration != null)
-.IsDependentOn("Clean")
-.IsDependentOn("Publish-All-Projects")
-.IsDependentOn("Apply-Xml-Transform")
-.IsDependentOn("Publish-Transforms")
-.IsDependentOn("Publish-xConnect-Project");
+//Task("Quick-Deploy")
+//.WithCriteria(configuration != null)
+//.IsDependentOn("Clean")
+//.IsDependentOn("Publish-All-Projects")
+//.IsDependentOn("Apply-Xml-Transform")
+//.IsDependentOn("Publish-Transforms")
+//.IsDependentOn("Publish-xConnect-Project");
 
 /*===============================================
 ================= SUB TASKS =====================
@@ -127,39 +130,39 @@ Task("Publish-Transforms").Does(() => {
     }
 });
 
-Task("Modify-Unicorn-Source-Folder").Does(() => {
-    var zzzDevSettingsFile = File($"{configuration.WebsiteRoot}/App_config/Include/Project/z.Common.Website.DevSettings.config");
-    
-	var rootXPath = "configuration/sitecore/sc.variable[@name='{0}']/@value";
-    var sourceFolderXPath = string.Format(rootXPath, "sourceFolder");
-    var directoryPath = MakeAbsolute(new DirectoryPath(configuration.SourceFolder)).FullPath;
+//Task("Modify-Unicorn-Source-Folder").Does(() => {
+//    var zzzDevSettingsFile = File($"{configuration.WebsiteRoot}/App_config/Include/Project/z.Common.Website.DevSettings.config");
+//    
+//	var rootXPath = "configuration/sitecore/sc.variable[@name='{0}']/@value";
+//    var sourceFolderXPath = string.Format(rootXPath, "sourceFolder");
+//    var directoryPath = MakeAbsolute(new DirectoryPath(configuration.SourceFolder)).FullPath;
+//
+//    var xmlSetting = new XmlPokeSettings {
+//        Namespaces = new Dictionary<string, string> {
+//            {"patch", @"http://www.sitecore.net/xmlconfig/"}
+//        }
+//    };
+//    XmlPoke(zzzDevSettingsFile, sourceFolderXPath, directoryPath, xmlSetting);
+//});
 
-    var xmlSetting = new XmlPokeSettings {
-        Namespaces = new Dictionary<string, string> {
-            {"patch", @"http://www.sitecore.net/xmlconfig/"}
-        }
-    };
-    XmlPoke(zzzDevSettingsFile, sourceFolderXPath, directoryPath, xmlSetting);
-});
-
-Task("Sync-Unicorn").Does(() => {
-    var unicornUrl = configuration.InstanceUrl + "unicorn.aspx";
-    Information("Sync Unicorn items from url: " + unicornUrl);
-
-    var authenticationFile = new FilePath($"{configuration.WebsiteRoot}/App_config/Include/Unicorn.SharedSecret.config");
-    var xPath = "/configuration/sitecore/unicorn/authenticationProvider/SharedSecret";
-
-    string sharedSecret = XmlPeek(authenticationFile, xPath);
-
-    
-    StartPowershellFile(unicornSyncScript, new PowershellSettings()
-                                                        .SetFormatOutput()
-                                                        .SetLogOutput()
-                                                        .WithArguments(args => {
-                                                            args.Append("secret", sharedSecret)
-                                                                .Append("url", unicornUrl);
-                                                        }));
-});
+//Task("Sync-Unicorn").Does(() => {
+//    var unicornUrl = configuration.InstanceUrl + "unicorn.aspx";
+//    Information("Sync Unicorn items from url: " + unicornUrl);
+//
+//   var authenticationFile = new FilePath($"{configuration.WebsiteRoot}/App_config/Include/Unicorn.SharedSecret.config");
+//    var xPath = "/configuration/sitecore/unicorn/authenticationProvider/SharedSecret";
+//
+//    string sharedSecret = XmlPeek(authenticationFile, xPath);
+//
+//    
+//    StartPowershellFile(unicornSyncScript, new PowershellSettings()
+//                                                        .SetFormatOutput()
+//                                                        .SetLogOutput()
+//                                                        .WithArguments(args => {
+//                                                            args.Append("secret", sharedSecret)
+//                                                                .Append("url", unicornUrl);
+//                                                        }));
+//});
 
 Task("Deploy-EXM-Campaigns").Does(() => {
     var url = $"{configuration.InstanceUrl}utilities/deployemailcampaigns.aspx?apiKey={configuration.MessageStatisticsApiKey}";
@@ -187,6 +190,25 @@ Task("Rebuild-Web-Index").Does(() => {
     RebuildIndex("sitecore_web_index");
 });
 
+Task("Azure-Build")
+.IsDependentOn("Download-Prerequisites")
+.IsDependentOn("ConvertTo-SCWDPs")
+.IsDependentOn("Upload-Packages");
 
+Task("Download-Prerequisites").Does(() => {
+
+});
+
+Task("ConvertTo-SCWDPs").Does(() => {
+
+});
+
+Task("Upload-Packages").Does(() => {
+
+});
+
+Task("Azure-Deploy").Does(() => {
+
+});
 
 RunTarget(target);
