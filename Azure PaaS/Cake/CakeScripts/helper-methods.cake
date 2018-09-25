@@ -8,8 +8,7 @@ public class Configuration
 {
     private MSBuildToolVersion _msBuildToolVersion;    
 
-    public string WebsiteRoot {get;set;}
-    public string XConnectRoot {get;set;}
+    public string DeployFolder {get;set;}
     public string InstanceUrl {get;set;}
     public string SolutionName {get;set;}
     public string ProjectFolder {get;set;}
@@ -101,7 +100,7 @@ public void Transform(string rootFolder) {
     {
         Information($"Applying configuration transform:{file.FullPath}");
         var fileToTransform = Regex.Replace(file.FullPath, ".+code/(.+)/*.xdt", "$1");
-        var sourceTransform = $"{configuration.WebsiteRoot}\\{fileToTransform}";
+        var sourceTransform = $"{configuration.Deployfolder}\\Site\\{fileToTransform}";
         
         XdtTransformConfig(sourceTransform			                // Source File
                             , file.FullPath			                // Tranforms file (*.xdt)

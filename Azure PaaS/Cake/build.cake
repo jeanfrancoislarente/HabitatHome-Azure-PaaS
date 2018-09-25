@@ -27,6 +27,7 @@ Setup(context =>
     configuration = DeserializeJsonFromFile<Configuration>(configFile);
 });
 
+var HabitatHomeSiteDeployFolder = $"{configuration.DeployFolder}\\Site\\HabitatHome"
 
 Task("Default")
 .WithCriteria(configuration != null)
@@ -75,11 +76,11 @@ Task("Build-Solution").Does(() => {
 });
 
 Task("Publish-Foundation-Projects").Does(() => {
-    PublishProjects(configuration.FoundationSrcFolder, configuration.WebsiteRoot);
+    PublishProjects(configuration.FoundationSrcFolder, HabitatHomeSiteDeployFolder);
 });
 
 Task("Publish-Feature-Projects").Does(() => {
-    PublishProjects(configuration.FeatureSrcFolder, configuration.WebsiteRoot);
+    PublishProjects(configuration.FeatureSrcFolder, HabitatHomeSiteDeployFolder);
 });
 
 Task("Publish-Project-Projects").Does(() => {
@@ -87,15 +88,16 @@ Task("Publish-Project-Projects").Does(() => {
     var habitat = $"{configuration.ProjectSrcFolder}\\Habitat";
     var habitatHome = $"{configuration.ProjectSrcFolder}\\HabitatHome";
 
-    PublishProjects(common, configuration.WebsiteRoot);
-    PublishProjects(habitat, configuration.WebsiteRoot);
-    PublishProjects(habitatHome, configuration.WebsiteRoot);
+    PublishProjects(common, HabitatHomeSiteDeployFolder);
+    PublishProjects(habitat, HabitatHomeSiteDeployFolder);
+    PublishProjects(habitatHome, HabitatHomeSiteDeployFolder);
 });
 
 Task("Publish-xConnect-Project").Does(() => {
     var xConnectProject = $"{configuration.ProjectSrcFolder}\\xConnect";
-
-    PublishProjects(xConnectProject, configuration.XConnectRoot);
+	var xConnectDeployFolder = $"{configuration.DeployFolder}\\Site\\xConnect";
+	
+    PublishProjects(xConnectProject, xConnectDeployFolder);
 });
 
 Task("Apply-Xml-Transform").Does(() => {
@@ -109,7 +111,7 @@ Task("Apply-Xml-Transform").Does(() => {
 
 Task("Publish-Transforms").Does(() => {
     var layers = new string[] { configuration.FoundationSrcFolder, configuration.FeatureSrcFolder, configuration.ProjectSrcFolder};
-    var destination = $@"{configuration.WebsiteRoot}\temp\transforms";
+    var destination = $@"{HabitatHomeSiteDeployFolder}\temp\transforms";
 
     CreateFolder(destination);
 
@@ -131,7 +133,7 @@ Task("Publish-Transforms").Does(() => {
 });
 
 //Task("Modify-Unicorn-Source-Folder").Does(() => {
-//    var zzzDevSettingsFile = File($"{configuration.WebsiteRoot}/App_config/Include/Project/z.Common.Website.DevSettings.config");
+//    var zzzDevSettingsFile = File($"{HabitatHomeSiteDeployFolder}/App_config/Include/Project/z.Common.Website.DevSettings.config");
 //    
 //	var rootXPath = "configuration/sitecore/sc.variable[@name='{0}']/@value";
 //    var sourceFolderXPath = string.Format(rootXPath, "sourceFolder");
@@ -149,7 +151,7 @@ Task("Publish-Transforms").Does(() => {
 //    var unicornUrl = configuration.InstanceUrl + "unicorn.aspx";
 //    Information("Sync Unicorn items from url: " + unicornUrl);
 //
-//   var authenticationFile = new FilePath($"{configuration.WebsiteRoot}/App_config/Include/Unicorn.SharedSecret.config");
+//   var authenticationFile = new FilePath($"{HabitatHomeSiteDeployFolder}/App_config/Include/Unicorn.SharedSecret.config");
 //    var xPath = "/configuration/sitecore/unicorn/authenticationProvider/SharedSecret";
 //
 //    string sharedSecret = XmlPeek(authenticationFile, xPath);
@@ -191,7 +193,7 @@ Task("Rebuild-Web-Index").Does(() => {
 });
 
 Task("Publish-YML").Does(() => {
-	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Publish-YML.ps1");
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Publish-YML.ps1");
 });
 
 Task("Azure-Build")
@@ -200,19 +202,22 @@ Task("Azure-Build")
 .IsDependentOn("Upload-Packages");
 
 Task("Download-Prerequisites").Does(() => {
-	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Download-Prerequisites.ps1");
+	var dlCheckResults = StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Download-Prerequisites.ps1");
 });
 
 Task("ConvertTo-SCWDPs").Does(() => {
-	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\ConvertTo-SCWDPs.ps1");
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\ConvertTo-SCWDPs.ps1", args =>
+        {
+            args.Append(dlCheckResults);
+        }););
 });
 
 Task("Upload-Packages").Does(() => {
-	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Upload-Packages.ps1");
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Upload-Packages.ps1");
 });
 
 Task("Azure-Deploy").Does(() => {
-	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Azure-Deploy.ps1");
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Azure-Deploy.ps1");
 });
 
 RunTarget(target);
