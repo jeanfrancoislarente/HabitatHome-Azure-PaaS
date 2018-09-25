@@ -190,25 +190,29 @@ Task("Rebuild-Web-Index").Does(() => {
     RebuildIndex("sitecore_web_index");
 });
 
+Task("Publish-YML").Does(() => {
+	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Publish-YML.ps1");
+});
+
 Task("Azure-Build")
 .IsDependentOn("Download-Prerequisites")
 .IsDependentOn("ConvertTo-SCWDPs")
 .IsDependentOn("Upload-Packages");
 
 Task("Download-Prerequisites").Does(() => {
-
+	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Download-Prerequisites.ps1");
 });
 
 Task("ConvertTo-SCWDPs").Does(() => {
-
+	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\ConvertTo-SCWDPs.ps1");
 });
 
 Task("Upload-Packages").Does(() => {
-
+	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Upload-Packages.ps1");
 });
 
 Task("Azure-Deploy").Does(() => {
-
+	StartPowershellFile ("{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Azure-Deploy.ps1");
 });
 
 RunTarget(target);
