@@ -1,0 +1,1 @@
+Copy-Item -Path "C:\Users\auzunov\Source\Repos\Sitecore.HabitatHome.Content\src\" -Filter "*.yml" -Destination "C:\_deployment\website\App_Data\serialization" -Recurse -Container
