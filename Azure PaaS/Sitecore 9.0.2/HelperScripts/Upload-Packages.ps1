@@ -1,3 +1,6 @@
+###############################################
+# Upload created WDPs during the build in Azure
+
 # Set variables for the container names
 $containerName = "azure-toolkit"
 $additionalContainerName = "temporary-toolkit"
@@ -52,6 +55,13 @@ catch {
     
 }
 
+# Assign values to the blobs
+
+
+# Get the URL for each blob and assign it to a variable
+(Get-AzureStorageBlob -blob 'StarterSite.zip' -Container $containerName).ICloudBlob.uri.AbsoluteUri
+
+#######################################
 # Construct azuredeploy.parameters.json
 
 $cake_config = Get-Content 'C:\Users\auzunov\Source\Repos\HabitatHome-Azure-PaaS\Azure PaaS\Cake\cake-config.json' -raw | ConvertFrom-Json
@@ -72,5 +82,31 @@ $azuredeploy_template.parameters | % {
     $_.sqlServerLogin.value = $sqlServerLogin
     $_.sqlServerPassword.value = $sqlServerPassword
     $_.authCertificatePassword.value = $authCertificatePassword
+    $_.singleMsDeployPackageUrl.value = $singleMsDeployPackageUrl
+    $_.xcSingleMsDeployPackageUrl.value = $xcSingleMsDeployPackageUrl
+    $_.modules.value.items.parameters.sxaMsDeployPackageUrl = $sxaMsDeployPackageUrl
+    $_.modules.value.items.parameters.speMsDeployPackageUrl = $speMsDeployPackageUrl
+    $_.modules.value.items.parameters.defDeployPackageUrl = $defDeployPackageUrl
+    $_.modules.value.items.parameters.defSitecoreDeployPackageUrl = $defSitecoreDeployPackageUrl
+    $_.modules.value.items.parameters.defSqlDeployPackageUrl = $defSqlDeployPackageUrl
+    $_.modules.value.items.parameters.defxConnectDeployPackageUrl = $defxConnectDeployPackageUrl
+    $_.modules.value.items.parameters.defDynamicsDeployPackageUrl = $defDynamicsDeployPackageUrl
+    $_.modules.value.items.parameters.defDynamicsConnectDeployPackageUrl = $defDynamicsConnectDeployPackageUrl
+    $_.modules.value.items.parameters.msDeployPackageUrl = $msDeployPackageUrl
+
+    if ($_.modules.value.items.name = "sxa"){
+
+        $_.modules.value.items.templateLink = $sxaTemplateLink
+    
+    } elseif ($_.modules.value.items.name = "def"){
+    
+        $_.modules.value.items.templateLink = $defTemplateLink
+    
+    } elseif ($_.modules.value.items.name = "bootloader"){
+    
+        $_.modules.value.items.templateLink = $bootloaderTemplateLink
+    
+    }
+
 }
 $azuredeploy_template | ConvertTo-Json -Depth 20 | Set-Content 'C:\Users\auzunov\Downloads\ARM_deploy\!Deployment\Azure PaaS\Sitecore 9.0.2\Xp Single\azuredeploy.parameters - Copy.json'
