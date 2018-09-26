@@ -2,7 +2,7 @@
 # Upload created WDPs during the build in Azure
 
 # Set variables for the container names
-$containerName = "azure-toolkit"
+$containerName = "azure-toolkit2"
 $additionalContainerName = "temporary-toolkit"
 
 # Check the Azure PowerShell Module's version
@@ -26,32 +26,54 @@ $sa = Get-AzureRmStorageAccount
 # Obtain the storage account context
 $ctx = $sa.Context
 
+try {
+
+    # Remove the temporary container if it exists
+
+    "Trying to remove any temporary containers, created on previous runs of the script..."
+    Remove-AzureStorageContainer -Name "$additionalContainerName" -Context $ctx -Force -ErrorAction Stop
+    
+}
+catch {
+    
+    "...no temporary container found"
+
+}
+
 # Try to write to the container - if failing, use a temporary one
 try {
 
+    "Verifying the existence of the current Azure container..."
+
 	# Check if the container name already exists
-    Get-AzureStorageContainer -Container $containerName -Context $ctx
+    Get-AzureStorageContainer -Container $containerName -Context $ctx -ErrorAction Stop
 
-	# Remove the temporary container if it exists
-    Remove-AzureStorageContainer -Name "$additionalContainerName" -Context $ctx -Force
-
-    # Create the main container for the WDPs
-    New-AzureStorageContainer -Name $containerName -Context $ctx -Permission blob
-
-    # Upload the WDP modules to the blob container
-    Get-ChildItem -Path "C:\_deployment\website_packaged\convert to WDP\WPD\" -Recurse | Set-AzureStorageBlobContent -Container $containerName -Context $ctx -Force
-
+    Get-ChildItem -File -Recurse "C:\_deployment\website_packaged\convert to WDP\WPD\modules" | ForEach-Object { Set-AzureStorageBlobContent -File $_.FullName -Blob $_.FullName.Substring(3) -Container $containerName -Context $ctx -Force}
 }
 catch {
 
-	# Remove the main container if the previous attempt has failed to create it
-    Remove-AzureStorageContainer -Name "$containerName" -Context $ctx -Force
+    try {
 
-    # Create a temporary container 
-    New-AzureStorageContainer -Name $additionalContainerName -Context $ctx -Permission blob
+        "Trying to create the container..."
 
-    # Upload the WDP modules to the temporary blob container
-    Get-ChildItem -Path "C:\_deployment\website_packaged\convert to WDP\WPD\" -Recurse | Set-AzureStorageBlobContent -Container $additionalContainerName -Context $ctx
+        # Create the main container for the WDPs
+        New-AzureStorageContainer -Name $containerName -Context $ctx -Permission blob -ErrorAction Stop
+
+        # Upload the WDP modules to the blob container
+        Get-ChildItem -File -Recurse "C:\_deployment\website_packaged\convert to WDP\WPD\modules" | ForEach-Object { Set-AzureStorageBlobContent -File $_.FullName -Blob $_.FullName.Substring(3) -Container $containerName -Context $ctx -Force}
+
+    }
+    catch {
+    
+        "It seems like the container has been deleted very recently... creating a temporary container instead"
+
+        # Create a temporary container
+        New-AzureStorageContainer -Name $additionalContainerName -Context $ctx -Permission blob
+
+        # Upload the WDP modules to the temporary blob container
+        Get-ChildItem -File -Recurse "C:\_deployment\website_packaged\convert to WDP\WPD\modules" | ForEach-Object { Set-AzureStorageBlobContent -File $_.FullName -Blob $_.FullName.Substring(3) -Container $containerName -Context $ctx -Force}
+    
+    }
     
 }
 
