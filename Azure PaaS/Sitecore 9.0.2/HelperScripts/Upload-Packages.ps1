@@ -77,11 +77,48 @@ catch {
     
 }
 
-# Assign values to the blobs
+# Get the URL for each blob
+$WDPlist = Get-AzureStorageBlob -Container $containerName -Context $ctx | ForEach-Object {
+    
+    if ($_.Name -eq "modules/SXA_single.scwdp.zip"){
 
+        $sxaMsDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
 
-# Get the URL for each blob and assign it to a variable
-(Get-AzureStorageBlob -blob 'StarterSite.zip' -Container $containerName).ICloudBlob.uri.AbsoluteUri
+    } elseif ($_.Name -eq "modules/SPE_single.scwdp.zip"){
+    
+        $speMsDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
+    
+    } elseif ($_.Name -eq "modules/1 Data Exchange Framework 2.0.1 rev. 180108_single.scwdp.zip"){
+    
+        $defDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
+    
+    } elseif ($_.Name -eq "modules/2 Sitecore Provider for Data Exchange Framework 2.0.1 rev. 180108_single.scwdp.zip"){
+    
+        $defSitecoreDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
+    
+    } elseif ($_.Name -eq "modules/3 SQL Provider for Data Exchange Framework 2.0.1 rev. 180108_single.scwdp.zip"){
+    
+        $defSqlDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
+    
+    } elseif ($_.Name -eq "modules/4 xConnect Provider for Data Exchange Framework 2.0.1 rev. 180108_single.scwdp.zip"){
+    
+        $defxConnectDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
+    
+    } elseif ($_.Name -eq "modules/5 Dynamics Provider for Data Exchange Framework 2.0.1 rev. 180108_single.scwdp.zip"){
+    
+        $defDynamicsDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
+    
+    } elseif ($_.Name -eq "modules/6 Connect for Microsoft Dynamics 2.0.1 rev. 180108_single.scwdp.zip"){
+    
+        $defDynamicsConnectDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
+    
+    } elseif ($_.Name -eq "modules/Sitecore.Cloud.Integration.Bootload.wdp.zip"){
+    
+        $msDeployPackageUrl = (Get-AzureStorageBlob -Blob $_.Name -Container $containerName -Context $ctx).ICloudBlob.uri.AbsoluteUri
+    
+    }
+    
+}
 
 #######################################
 # Construct azuredeploy.parameters.json
