@@ -27,7 +27,7 @@ Setup(context =>
     configuration = DeserializeJsonFromFile<Configuration>(configFile);
 });
 
-var HabitatHomeSiteDeployFolder = $"{configuration.DeployFolder}\\Site\\HabitatHome"
+var HabitatHomeSiteDeployFolder = $"{configuration.DeployFolder}\\Website\\HabitatHome"
 
 Task("Default")
 .WithCriteria(configuration != null)
@@ -95,7 +95,7 @@ Task("Publish-Project-Projects").Does(() => {
 
 Task("Publish-xConnect-Project").Does(() => {
     var xConnectProject = $"{configuration.ProjectSrcFolder}\\xConnect";
-	var xConnectDeployFolder = $"{configuration.DeployFolder}\\Site\\xConnect";
+	var xConnectDeployFolder = $"{configuration.DeployFolder}\\Website\\xConnect";
 	
     PublishProjects(xConnectProject, xConnectDeployFolder);
 });
@@ -202,8 +202,11 @@ Task("Azure-Build")
 .IsDependentOn("Upload-Packages");
 
 Task("Download-Prerequisites").Does(() => {
-	var dlCheckResults = StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Download-Prerequisites.ps1");
-});
+
+	var dlCheckResults = StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Download-Prerequisites.ps1"args =>
+        {
+            args.Append(local:?path);
+        }););
 
 Task("ConvertTo-SCWDPs").Does(() => {
 	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\ConvertTo-SCWDPs.ps1", args =>

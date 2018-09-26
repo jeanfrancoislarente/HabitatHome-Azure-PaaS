@@ -100,7 +100,7 @@ public void Transform(string rootFolder) {
     {
         Information($"Applying configuration transform:{file.FullPath}");
         var fileToTransform = Regex.Replace(file.FullPath, ".+code/(.+)/*.xdt", "$1");
-        var sourceTransform = $"{configuration.Deployfolder}\\Site\\{fileToTransform}";
+        var sourceTransform = $"{configuration.Deployfolder}\\Website\\{fileToTransform}";
         
         XdtTransformConfig(sourceTransform			                // Source File
                             , file.FullPath			                // Tranforms file (*.xdt)
