@@ -2,7 +2,7 @@
 # Upload created WDPs during the build in Azure
 
 # Set variables for the container names
-$containerName = "azure-toolkit2"
+$containerName = "azure-toolkit"
 $additionalContainerName = "temporary-toolkit"
 
 # Check the Azure PowerShell Module's version
@@ -148,15 +148,15 @@ $azuredeploy_template.parameters | ForEach-Object {
     $_.xcSingleMsDeployPackageUrl.value = $xcSingleMsDeployPackageUrl
     $_.modules.value.items[0].parameters.sxaMsDeployPackageUrl = $sxaMsDeployPackageUrl
     $_.modules.value.items[0].parameters.speMsDeployPackageUrl = $speMsDeployPackageUrl
+    $_.modules.value.items[0].templateLink = $sxaTemplateLink
     $_.modules.value.items[1].parameters.defDeployPackageUrl = $defDeployPackageUrl
     $_.modules.value.items[1].parameters.defSitecoreDeployPackageUrl = $defSitecoreDeployPackageUrl
     $_.modules.value.items[1].parameters.defSqlDeployPackageUrl = $defSqlDeployPackageUrl
     $_.modules.value.items[1].parameters.defxConnectDeployPackageUrl = $defxConnectDeployPackageUrl
     $_.modules.value.items[1].parameters.defDynamicsDeployPackageUrl = $defDynamicsDeployPackageUrl
     $_.modules.value.items[1].parameters.defDynamicsConnectDeployPackageUrl = $defDynamicsConnectDeployPackageUrl
-    $_.modules.value.items[2].parameters.msDeployPackageUrl = $msDeployPackageUrl
-    $_.modules.value.items[0].templateLink = $sxaTemplateLink
     $_.modules.value.items[1].templateLink = $defTemplateLink
+    $_.modules.value.items[2].parameters.msDeployPackageUrl = $msDeployPackageUrl
     $_.modules.value.items[2].templateLink = $bootloaderTemplateLink
 
 }
