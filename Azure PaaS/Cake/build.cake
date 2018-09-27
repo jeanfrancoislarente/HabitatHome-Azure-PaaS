@@ -14,6 +14,7 @@ var cakeConsole = new CakeConsole();
 var configJsonFile = "cake-config.json";
 //var unicornSyncScript = $"./scripts/Unicorn/Sync.ps1";
 
+
 /*===============================================
 ================ MAIN TASKS =====================
 ===============================================*/
@@ -27,7 +28,8 @@ Setup(context =>
     configuration = DeserializeJsonFromFile<Configuration>(configFile);
 });
 
-var HabitatHomeSiteDeployFolder = $"{configuration.DeployFolder}\\Website\\HabitatHome"
+var HabitatHomeSiteDeployFolder = $"{configuration.DeployFolder}\\Website\\HabitatHome";
+var configjsonfilepath = $"{configuration.projectFolder}\\Azure PaaS\\Cake\\cake-config.json";
 
 Task("Default")
 .WithCriteria(configuration != null)
@@ -203,16 +205,13 @@ Task("Azure-Build")
 
 Task("Download-Prerequisites").Does(() => {
 
-	var dlCheckResults = StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Download-Prerequisites.ps1"args =>
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Download-Prerequisites.ps1"args =>
         {
-            args.Append(local:?path);
+            args.Append(configjsonfilepath);
         }););
 
 Task("ConvertTo-SCWDPs").Does(() => {
-	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\ConvertTo-SCWDPs.ps1", args =>
-        {
-            args.Append(dlCheckResults);
-        }););
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\ConvertTo-SCWDPs.ps1");
 });
 
 Task("Upload-Packages").Does(() => {

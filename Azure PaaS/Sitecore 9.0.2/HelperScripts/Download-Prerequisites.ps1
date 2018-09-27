@@ -4,10 +4,8 @@
 
 # Find and process cake-config.json
 Param(
-    [string] $cakelocation
+    [string] $ConfigurationFile
 )
-
-[string] $ConfigurationFile = (Join-Path $cakelocation cake-config.json)
 
 if (!(Test-Path $ConfigurationFile)) {
     Write-Host "Configuration file '$($ConfigurationFile)' not found." -ForegroundColor Red
@@ -29,10 +27,16 @@ if (!(Test-Path $AssetsFile)) {
     Exit 1
 }
 
-$config = Get-Content -Raw $AssetsFile |  ConvertFrom-Json
-if (!$config) {
-    throw "Error trying to load configuration!"
+$assetconfig = Get-Content -Raw $AssetsFile |  ConvertFrom-Json
+if (!$assetconfig) {
+    throw "Error trying to load Assest File!"
 } 
+
+###################################
+# Paramters
+###################################
+$downloadlist = New-Object System.Collections.Generic.List[System.Object]
+$assetsfolder = (Join-Path $config.DeployFolder assets)
 
 ####################################
 # Check for existing Files in Azure
@@ -65,30 +69,23 @@ catch {
 
 }
 
-$downloadlist = New-Object System.Collections.Generic.List[System.Object]
-$assetsfolder = (Join-Path $config.DeployFolder assets)
-
 # Create list of items in container
 if($AzureExists){
 
+  "Gathering List of files in Azure"
+
   $containerlist = Get-AzureStorageBlob -Container $containerName -Context $ctx -ErrorAction Stop
 
-  $pos = 0
   foreach ($_ in $containerlist){
 
-  $downloadlist.Add($_[$pos].name)
+  $downloadlist.Add($_.name)
 
-  $pos++
   }
 }
 
 ##################################################
 # Check for existing Files in Deploy\Assets Folder
 ##################################################
-
-$localassets = $null
-
-$localassets = Get-ChildItem -path $(Join-Path $assetsfolder *) -include *.zip
 
 if (!(Test-Path $assetsfolder)) {
 
@@ -98,69 +95,67 @@ if (!(Test-Path $assetsfolder)) {
   New-Item -ItemType Directory -Force -Path $assetsfolder
 
 }
-else{
 
-  $pos = 0
-  foreach ($_ in $localassets){
+"Gathering List of local files"
 
-    $downloadlist.Add($_[$pos].name)
+$localassets = Get-ChildItem -path $(Join-Path $assetsfolder *) -include *.zip
 
-    $pos++
+foreach($_ in $localassets){
+
+  $downloadlist.Add($_.name)
+
   }
 
-}
-  
+
+
 ###########################
 # Download Required Files
 ###########################
 
- $credentials = Get-Credential -Message "Please provide dev.sitecore.com credentials"
-
  Import-Module .\DownloadFileWithCredentials.psm1 -Force
+
+ $credentials = Get-Credential -Message "Please provide dev.sitecore.com credentials"
 
 	Function Download-Asset {
     param(   [PSCustomObject]
-        $packagename,
+        $assetename,
         $Credentials,
-        $assetsfolder
-		$assetsjson
+        $assetsfolder,
+		$sourceuri
     )
-    foreach ($package in $Packages) {
-        if ($package.id -eq "xp" -or $package.id -eq "sat") {
-            # Skip Sitecore Azure Toolkit and XP package - previously downloaded
-            continue;
-        }
 
-        if (!(Test-Path $packagesFolder)) {
-            New-Item -ItemType Directory -Force -Path $packagesFolder
+        if (!(Test-Path $assetsfolder)) {
+            New-Item -ItemType Directory -Force -Path $assetsfolder
         }
        
-        if ($package.isGroup -and $package.download -eq $true) {
-            $submodules = $package.modules
-            $args = @{
-                Packages         = $submodules
-                PackagesFolder   = $PackagesFolder
-                Credentials      = $Credentials
-                DownloadJsonPath = $DownloadJsonPath
-            }
-            Process-Packages @args
-        }
-        elseif ($true -eq $package.download -and (!($package.PSObject.Properties.name -match "isGroup") ) ) {
-            Write-Host ("Downloading {0}  -  if required" -f $package.name )
-            $destination = $package.packagePath
-            if (!(Test-Path $destination)) {
-                $params = @{
-                    Credentials = $credentials
-                    Source      = $package.url
-                    Destination = $destination
-                }
-                Install-SitecoreConfiguration  @params  -WorkingDirectory $(Join-Path $PWD "logs")  
-            }
-            if ($package.convert) {
-                Write-Host ("Converting {0} to SCWDP" -f $package.name) -ForegroundColor Green
-                ConvertTo-SCModuleWebDeployPackage  -Path $destination -Destination $PackagesFolder -Force
-            }
-        }
-    }
 
+        Write-Host ("Downloading" -f $assetname )
+
+        if (!(Test-Path $destination)) {
+			$params = @{
+                    Source      = $sourceuri
+                    Destination = $assetsfolder
+					Credentials = $Credentials
+            }
+				
+            Invoke-DownloadFileWithCredentialsTask  @params  
+		}
+		
+	}
+
+foreach ($prereq in $assetconfig.prerequisites)
+{
+
+	$prereq
+	foreach ($_ in $downloadlist)
+	{
+		if ($prereq.filename -eq $_.name)
+		{
+			continue
+		}
+		else
+		{
+			Download-Asset -assetname $_.name -Credentials $Credentials -assetsfolder $assetsfolder -sourceuri $prereq.url
+		}
+	}
 }
