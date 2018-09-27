@@ -28,21 +28,21 @@
     "extension": {
       "type": "secureObject",
       "defaultValue": {
-        "dxfDeployPackageUrl": null,
-		"scdxfDeployPackageUrl": null,
-		"sqldxfDeployPackageUrl": null,
-		"xcdxfDeployPackageUrl": null,
-		"dyndxfDeployPackageUrl": null,
-		"dynconnDeployPackageUrl": null
+        "defDeployPackageUrl": null,
+        "defSitecoreDeployPackageUrl": null,
+        "defSqlDeployPackageUrl": null,
+        "defxConnectDeployPackageUrl": null,
+        "defDynamicsDeployPackageUrl": null,
+        "defDynamicsConnectDeployPackageUrl": null
       }
     },
-  
+
     "templateLinkBase": {
       "type": "string",
       "minLength": 1,
       "defaultValue": "[uri(replace(json(string(deployment().properties.templateLink)).uri,' ','%20'), '.')]"
     },
-  
+
     "deploymentId": {
       "type": "string",
       "defaultValue": "[coalesce(parameters('standard').deploymentId, resourceGroup().name)]"
@@ -52,7 +52,7 @@
       "minLength": 1,
       "defaultValue": "[coalesce(parameters('standard').location, resourceGroup().location)]"
     },
-  
+
     "sqlServerFqdn": {
       "type": "string",
       "minLength": 1,
@@ -68,7 +68,7 @@
       "minLength": 8,
       "defaultValue": "[parameters('standard').sqlServerPassword]"
     },
-  
+
     "coreSqlDatabaseName": {
       "type": "string",
       "minLength": 1,
@@ -79,41 +79,41 @@
       "minLength": 1,
       "defaultValue": "[coalesce(parameters('standard').masterSqlDatabaseName, concat(parameters('deploymentId'), '-master-db'))]"
     },
-  
+
     "singleWebAppName": {
       "type": "string",
       "minLength": 1,
       "defaultValue": "[coalesce(parameters('standard').singleWebAppName, concat(parameters('deploymentId'), '-single'))]"
     },
-    "dxfDeployPackageUrl": {
+    "defDeployPackageUrl": {
       "type": "securestring",
       "minLength": 1,
-      "defaultValue": "[parameters('extension').dxfDeployPackageUrl]"
+      "defaultValue": "[parameters('extension').defDeployPackageUrl]"
     },
-    "scdxfDeployPackageUrl": {
+    "defSitecoreDeployPackageUrl": {
       "type": "securestring",
       "minLength": 1,
-      "defaultValue": "[parameters('extension').scdxfDeployPackageUrl]"
+      "defaultValue": "[parameters('extension').defSitecoreDeployPackageUrl]"
     },
-    "sqldxfDeployPackageUrl": {
+    "defSqlDeployPackageUrl": {
       "type": "securestring",
       "minLength": 1,
-      "defaultValue": "[parameters('extension').sqldxfDeployPackageUrl]"
+      "defaultValue": "[parameters('extension').defSqlDeployPackageUrl]"
     },
-    "xcdxfDeployPackageUrl": {
+    "defxConnectDeployPackageUrl": {
       "type": "securestring",
       "minLength": 1,
-      "defaultValue": "[parameters('extension').xcdxfDeployPackageUrl]"
+      "defaultValue": "[parameters('extension').defxConnectDeployPackageUrl]"
     },
-    "dyndxfDeployPackageUrl": {
+    "defDynamicsDeployPackageUrl": {
       "type": "securestring",
       "minLength": 1,
-      "defaultValue": "[parameters('extension').dyndxfDeployPackageUrl]"
+      "defaultValue": "[parameters('extension').defDynamicsDeployPackageUrl]"
     },
-    "dynconnDeployPackageUrl": {
+    "defDynamicsConnectDeployPackageUrl": {
       "type": "securestring",
       "minLength": 1,
-      "defaultValue": "[parameters('extension').dynconnDeployPackageUrl]"
+      "defaultValue": "[parameters('extension').defDynamicsConnectDeployPackageUrl]"
     }
   },
   
@@ -127,7 +127,7 @@
         "mode": "Incremental",      
         "addOnPackages": [
           {
-            "packageUri": "[parameters('dxfDeployPackageUrl')]",
+            "packageUri": "[parameters('defDeployPackageUrl')]",
             "dbType": "SQL",
             "connectionString": "[concat('Data Source=tcp:', variables('sqlServerFqdnTidy'), ',1433;Initial Catalog=master;User Id=', parameters('sqlServerLogin'), ';Password=', parameters('sqlServerPassword'), ';')]",
             "setParameters": {
@@ -137,7 +137,7 @@
             }
           },
           {
-            "packageUri": "[parameters('scdxfDeployPackageUrl')]",
+            "packageUri": "[parameters('defSitecoreDeployPackageUrl')]",
             "dbType": "SQL",
             "connectionString": "[concat('Data Source=tcp:', variables('sqlServerFqdnTidy'), ',1433;Initial Catalog=master;User Id=', parameters('sqlServerLogin'), ';Password=', parameters('sqlServerPassword'), ';')]",
             "setParameters": {
@@ -147,7 +147,7 @@
             }
           },
           {
-            "packageUri": "[parameters('sqldxfDeployPackageUrl')]",
+            "packageUri": "[parameters('defSqlDeployPackageUrl')]",
             "dbType": "SQL",
             "connectionString": "[concat('Data Source=tcp:', variables('sqlServerFqdnTidy'), ',1433;Initial Catalog=master;User Id=', parameters('sqlServerLogin'), ';Password=', parameters('sqlServerPassword'), ';')]",
             "setParameters": {
@@ -157,7 +157,7 @@
             }
           },
           {
-            "packageUri": "[parameters('xcdxfDeployPackageUrl')]",
+            "packageUri": "[parameters('defxConnectDeployPackageUrl')]",
             "dbType": "SQL",
             "connectionString": "[concat('Data Source=tcp:', variables('sqlServerFqdnTidy'), ',1433;Initial Catalog=master;User Id=', parameters('sqlServerLogin'), ';Password=', parameters('sqlServerPassword'), ';')]",
             "setParameters": {
@@ -167,7 +167,7 @@
             }
           },
           {
-            "packageUri": "[parameters('dyndxfDeployPackageUrl')]",
+            "packageUri": "[parameters('defDynamicsDeployPackageUrl')]",
             "dbType": "SQL",
             "connectionString": "[concat('Data Source=tcp:', variables('sqlServerFqdnTidy'), ',1433;Initial Catalog=master;User Id=', parameters('sqlServerLogin'), ';Password=', parameters('sqlServerPassword'), ';')]",
             "setParameters": {
@@ -177,7 +177,7 @@
             }
           },
           {
-            "packageUri": "[parameters('dynconnDeployPackageUrl')]",
+            "packageUri": "[parameters('defDynamicsConnectDeployPackageUrl')]",
             "dbType": "SQL",
             "connectionString": "[concat('Data Source=tcp:', variables('sqlServerFqdnTidy'), ',1433;Initial Catalog=master;User Id=', parameters('sqlServerLogin'), ';Password=', parameters('sqlServerPassword'), ';')]",
             "setParameters": {
