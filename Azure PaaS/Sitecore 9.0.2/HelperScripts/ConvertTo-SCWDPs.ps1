@@ -1,41 +1,57 @@
-######################################################################
-# Create the WDP for the Data Exchange Framework module and components
+#######################################################
+### Create the WDP for Habitat Home from the build output
 
-# Initial check to see if the WDP package was already present and skip creation
+### Prepare WDP folders and paths
+# Create empty folder structures for the WDP work
 
-if (!$WdpPackagePresent){
+$rootFolder = "C:\_deployment\website_packaged_test"
+$SourceFolderPath = "$($rootFolder)\SourcePackage"
+$DestinationFolderPath = New-Item -Path "$($rootFolder)\convert to WDP\WDP" -ItemType Directory -Force
 
-# Prepare WDP folders and paths
+# WDP Components folder and sub-folders creation
 
-$SourceFolderPath = New-Item -Path "C:\_deployment\website_packaged_test" -ItemType directory -Force
-$DestinationFolderPath = New-Item -Path "C:\_deployment\website_packaged_test\convert to WDP\WPD" -ItemType directory -Force
-$CargoPayloadFolderPath = New-Item -Path "C:\_deployment\website_packaged_test\convert to WDP\Components\CargoPayloads" -ItemType directory -Force
-$AdditionalWdpContentsFolderPath = New-Item -Path "C:\_deployment\website_packaged_test\convert to WDP\Components\AdditionalFiles" -ItemType directory -Force
-$ParameterXmlFolderPath = New-Item -Path "C:\_deployment\website_packaged_test\convert to WDP\Components\MsDeployXmls" -ItemType directory -Force
+$ComponentsFolderPath = New-Item -Path "$($rootFolder)\convert to WDP\Components" -ItemType Directory -Force
+$CargoPayloadFolderPath = New-Item -Path "$($ComponentsFolderPath)\CargoPayloads" -ItemType Directory -Force
+$AdditionalWdpContentsFolderPath = New-Item -Path "$($ComponentsFolderPath)\AdditionalFiles" -ItemType Directory -Force
+$JsonConfigFolderPath = New-Item -Path "$($ComponentsFolderPath)\Configs" -ItemType Directory -Force
+$ParameterXmlFolderPath = New-Item -Path "$($ComponentsFolderPath)\MsDeployXmls" -ItemType Directory -Force
+
+### Provide the required files for WDP
+
 $SitecoreCloudModulePath = "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1"
-$ConfigFilePath = "C:\_deployment\website_packaged\convert to WDP\Components\Configs\website.config.json"
-$ParameterXmlFilePath = "C:\_deployment\website_packaged\convert to WDP\Components\MsDeployXmls\website_parameters.xml"
+$InitialConfigFilePath = "$($rootFolder)\website_config.json"
+$InitialParameterXmlFilePath = "$($rootFolder)\website_parameters.xml"
 
-# Copy the parameters.xml file over to the $ParameterXmlFolderPath.FullName folder
+$ConfigFilePath = "$($JsonConfigFolderPath)\website_config.json"
+$CargoPayloadZipFilePath = "$($ComponentsFolderPath)\website_cargo.zip"
+$CargoPayloadFilePath = "$($CargoPayloadFolderPath)\website_cargo.sccpl"
 
-Copy-Item -Path $ParameterXmlFilePath -Destination $ParameterXmlFolderPath.FullName -Force
+# Copy the parameters.xml file over to the target ParameterXml folder
 
-# Create the Sitecore Cargo Payload file
+Copy-Item -Path $InitialParameterXmlFilePath -Destination $ParameterXmlFolderPath.FullName -Force
+
+# Copy the config.json file over to the target Config folder
+
+Copy-Item -Path $InitialConfigFilePath -Destination $ConfigFilePath -Force
 
 # Create folders for Sitecore Cargo Payload file
 
-$CopyToRootPath = New-Item -Path "C:\_deployment\website_packaged_test\convert to WDP\Components\CargoPayloads\CopyToRoot" -ItemType directory -Force
-$CopyToWebsitePath = New-Item -Path "C:\_deployment\website_packaged_test\convert to WDP\Components\CargoPayloads\CopyToWebsite" -ItemType directory -Force
-$IOActionsPath = New-Item -Path "C:\_deployment\website_packaged_test\convert to WDP\Components\CargoPayloads\IOActions" -ItemType directory -Force
-$XdtsPath = New-Item -Path "C:\_deployment\website_packaged_test\convert to WDP\Components\CargoPayloads\Xdts" -ItemType directory -Force
+$CopyToRootPath = New-Item -Path "$($CargoPayloadFolderPath)\CopyToRoot" -ItemType Directory -Force
+$CopyToWebsitePath = New-Item -Path "$($CargoPayloadFolderPath)\CopyToWebsite" -ItemType Directory -Force
+$IOActionsPath = New-Item -Path "$($CargoPayloadFolderPath)\IOActions" -ItemType Directory -Force
+$XdtsPath = New-Item -Path "$($CargoPayloadFolderPath)\Xdts" -ItemType Directory -Force
 
-# Zip up all folders in a single zip file (NOT working yet because it creates a zip that includes the root folder - I don't want that)
+# Zip up all Cargo Payload folders
 
-Compress-Archive -Path $CargoPayloadFolderPath.FullName -DestinationPath "$($CargoPayloadFolderPath.FullName)\website_cargo" -Force
+[Reflection.Assembly]::LoadWithPartialName( "System.IO.Compression.FileSystem" )
 
-# Rename the zipped file extension to .sccpl
+$CompressionLevel = [System.IO.Compression.CompressionLevel]::NoCompression
 
-Rename-Item -Path "$($CargoPayloadFolderPath.FullName)\website_cargo.zip" -NewName "website_cargo.sccpl"
+[System.IO.Compression.ZipFile]::CreateFromDirectory($CargoPayloadFolderPath.FullName, $CargoPayloadZipFilePath, $CompressionLevel,  $False)
+
+# Move and rename the zipped file to .sccpl - create the Sitecore Cargo Payload file
+
+Move-Item -Path $CargoPayloadZipFilePath -Destination $CargoPayloadFilePath -Force
 
 # Clean up SCCPL folders
 
@@ -43,35 +59,42 @@ Remove-Item -Path $CopyToRootPath.FullName
 Remove-Item -Path $CopyToWebsitePath.FullName
 Remove-Item -Path $IOActionsPath.FullName
 Remove-Item -Path $XdtsPath.FullName
+Remove-Item -Path $CargoPayloadZipFilePath -ErrorAction Ignore
 
-# Build the WDP module
-
-Import-Module $SitecoreCloudModulePath -Verbose
-Start-SitecoreAzureModulePackaging -SourceFolderPath $SourceFolderPath.FullName `
-                                   -DestinationFolderPath $DestinationFolderPath.FullName `
-                                   -CargoPayloadFolderPath $CargoPayloadFolderPath.FullName `
-                                   -AdditionalWdpContentsFolderPath $AdditionalWdpContentsFolderPath.FullName `
-                                   -ParameterXmlFolderPath $ParameterXmlFolderPath.FullName `
-                                   -ConfigFilePath $ConfigFilePath `
-                                   -Verbose
-
-}
-
-# Create the WDP for Habitat Home from the build output (not started working on this yet...)
-
-$SitecoreCloudModulePath = "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1"
-$SourceFolderPath = "C:\_deployment\website_packaged"
-$DestinationFolderPath = "C:\_deployment\website_packaged\convert to WDP\WPD"
-$CargoPayloadFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\CargoPayloads"
-$AdditionalWdpContentsFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\AdditionalFiles"
-$ParameterXmlFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\MsDeployXmls"
-$ConfigFilePath = "C:\_deployment\website_packaged\convert to WDP\Components\Configs\website.config.json"
+### Build the WDP file
 
 Import-Module $SitecoreCloudModulePath -Verbose
 Start-SitecoreAzureModulePackaging -SourceFolderPath $SourceFolderPath `
-                                   -DestinationFolderPath $DestinationFolderPath `
-                                   -CargoPayloadFolderPath $CargoPayloadFolderPath `
-                                   -AdditionalWdpContentsFolderPath $AdditionalWdpContentsFolderPath `
-                                   -ParameterXmlFolderPath $ParameterXmlFolderPath `
-                                   -ConfigFilePath $ConfigFilePath `
-                                   -Verbose
+                                    -DestinationFolderPath $DestinationFolderPath.FullName `
+                                    -CargoPayloadFolderPath $CargoPayloadFolderPath.FullName `
+                                    -AdditionalWdpContentsFolderPath $AdditionalWdpContentsFolderPath.FullName `
+                                    -ParameterXmlFolderPath $ParameterXmlFolderPath.FullName `
+                                    -ConfigFilePath $ConfigFilePath `
+                                    -Verbose
+
+
+######################################################################
+### Create the WDP for the Data Exchange Framework module and components
+
+# Initial check to see if the WDP package was already present and skip creation
+
+if (!$WdpPackagePresent){
+
+    $SitecoreCloudModulePath = "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1"
+    $SourceFolderPath = "C:\_deployment\website_packaged"
+    $DestinationFolderPath = "C:\_deployment\website_packaged\convert to WDP\WDP"
+    $CargoPayloadFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\CargoPayloads"
+    $AdditionalWdpContentsFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\AdditionalFiles"
+    $ParameterXmlFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\MsDeployXmls"
+    $ConfigFilePath = "C:\_deployment\website_packaged\convert to WDP\Components\Configs\website_config.json"
+
+    Import-Module $SitecoreCloudModulePath -Verbose
+    Start-SitecoreAzureModulePackaging -SourceFolderPath $SourceFolderPath `
+                                       -DestinationFolderPath $DestinationFolderPath `
+                                       -CargoPayloadFolderPath $CargoPayloadFolderPath `
+                                       -AdditionalWdpContentsFolderPath $AdditionalWdpContentsFolderPath `
+                                       -ParameterXmlFolderPath $ParameterXmlFolderPath `
+                                       -ConfigFilePath $ConfigFilePath `
+                                       -Verbose
+
+}
