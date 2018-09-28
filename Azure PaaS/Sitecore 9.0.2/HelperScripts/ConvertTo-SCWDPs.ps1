@@ -1,4 +1,5 @@
-### 3rd Party Ionic Zip function, defined here
+#################################################################
+# 3rd Party Ionic Zip function - helping create the SCCPL package
 
 function Zip ([String] $FolderToZip, [String] $ZipFilePath) {
 
@@ -23,100 +24,123 @@ function Zip ([String] $FolderToZip, [String] $ZipFilePath) {
 
 }
 
-#########################################################
-### Create the WDP for Habitat Home from the build output
-#########################################################
+###############################
+# Create the Web Deploy Package
 
-### Prepare WDP folders and paths
-# Create empty folder structures for the WDP work
+function Create-WDP ([String] $RootFolder, [String] $SitecoreCloudModulePath, [String] $JsonConfigFilename, [String] $XmlParameterFilename, [String] $SccplCargoFilename, [bool] $WdpPackagePresent){
 
-[String] $rootFolder = "C:\_deployment\website_packaged_test"
-[String] $SourceFolderPath = "$($rootFolder)\SourcePackage"
-$DestinationFolderPath = New-Item -Path "$($rootFolder)\convert to WDP\WPD" -ItemType Directory -Force
+    # Initial check to see if the WDP package was already present and skip creation
 
-# WDP Components folder and sub-folders creation
+    if (!$WdpPackagePresent){
 
-$ComponentsFolderPath = New-Item -Path "$($rootFolder)\convert to WDP\Components" -ItemType Directory -Force
-$CargoPayloadFolderPath = New-Item -Path "$($ComponentsFolderPath)\CargoPayloads" -ItemType Directory -Force
-$AdditionalWdpContentsFolderPath = New-Item -Path "$($ComponentsFolderPath)\AdditionalFiles" -ItemType Directory -Force
-$JsonConfigFolderPath = New-Item -Path "$($ComponentsFolderPath)\Configs" -ItemType Directory -Force
-$ParameterXmlFolderPath = New-Item -Path "$($ComponentsFolderPath)\MsDeployXmls" -ItemType Directory -Force
+        # Create empty folder structures for the WDP work
 
-### Provide the required files for WDP
+        [String] $SourceFolderPath = "$($RootFolder)\SourcePackage"
+        $DestinationFolderPath = New-Item -Path "$($RootFolder)\convert to WDP\WPD" -ItemType Directory -Force
 
-[String] $SitecoreCloudModulePath = "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1"
-[String] $InitialConfigFilePath = "$($rootFolder)\website_config.json"
-[String] $InitialParameterXmlFilePath = "$($rootFolder)\website_parameters.xml"
+        # WDP Components folder and sub-folders creation
 
-[String] $ConfigFilePath = "$($JsonConfigFolderPath)\website_config.json"
-[String] $CargoPayloadZipFilePath = "$($ComponentsFolderPath)\website_cargo.zip"
-[String] $CargoPayloadFilePath = "$($CargoPayloadFolderPath)\website_cargo.sccpl"
+        $ComponentsFolderPath = New-Item -Path "$($RootFolder)\convert to WDP\Components" -ItemType Directory -Force
+        $CargoPayloadFolderPath = New-Item -Path "$($ComponentsFolderPath)\CargoPayloads" -ItemType Directory -Force
+        $AdditionalWdpContentsFolderPath = New-Item -Path "$($ComponentsFolderPath)\AdditionalFiles" -ItemType Directory -Force
+        $JsonConfigFolderPath = New-Item -Path "$($ComponentsFolderPath)\Configs" -ItemType Directory -Force
+        $ParameterXmlFolderPath = New-Item -Path "$($ComponentsFolderPath)\MsDeployXmls" -ItemType Directory -Force
 
-# Copy the parameters.xml file over to the target ParameterXml folder
+        ### Provide the required files for WDP
 
-Copy-Item -Path $InitialParameterXmlFilePath -Destination $ParameterXmlFolderPath.FullName -Force
+        [String] $InitialConfigFilePath = "$($RootFolder)\$($JsonConfigFilename).json"
+        [String] $InitialParameterXmlFilePath = "$($RootFolder)\$($XmlParameterFilename).xml"
 
-# Copy the config.json file over to the target Config folder
+        [String] $ConfigFilePath = "$($JsonConfigFolderPath)\$($JsonConfigFilename).json"
+        [String] $CargoPayloadZipFilePath = "$($ComponentsFolderPath)\$($SccplCargoFilename).zip"
+        [String] $CargoPayloadFilePath = "$($CargoPayloadFolderPath)\$($SccplCargoFilename).sccpl"
 
-Copy-Item -Path $InitialConfigFilePath -Destination $ConfigFilePath -Force
+        # Copy the parameters.xml file over to the target ParameterXml folder
 
-# Create folders for Sitecore Cargo Payload file
+        Copy-Item -Path $InitialParameterXmlFilePath -Destination $ParameterXmlFolderPath.FullName -Force
 
-$CopyToRootPath = New-Item -Path "$($CargoPayloadFolderPath)\CopyToRoot" -ItemType Directory -Force
-$CopyToWebsitePath = New-Item -Path "$($CargoPayloadFolderPath)\CopyToWebsite" -ItemType Directory -Force
-$IOActionsPath = New-Item -Path "$($CargoPayloadFolderPath)\IOActions" -ItemType Directory -Force
-$XdtsPath = New-Item -Path "$($CargoPayloadFolderPath)\Xdts" -ItemType Directory -Force
+        # Copy the config.json file over to the target Config folder
 
-# Zip up all Cargo Payload folders using Ionic Zip
+        Copy-Item -Path $InitialConfigFilePath -Destination $ConfigFilePath -Force
 
-Zip -FolderToZip $CargoPayloadFolderPath.FullName -ZipFilePath $CargoPayloadZipFilePath
+        # Create folders for Sitecore Cargo Payload file
 
-# Move and rename the zipped file to .sccpl - create the Sitecore Cargo Payload file
+        $CopyToRootPath = New-Item -Path "$($CargoPayloadFolderPath)\CopyToRoot" -ItemType Directory -Force
+        $CopyToWebsitePath = New-Item -Path "$($CargoPayloadFolderPath)\CopyToWebsite" -ItemType Directory -Force
+        $IOActionsPath = New-Item -Path "$($CargoPayloadFolderPath)\IOActions" -ItemType Directory -Force
+        $XdtsPath = New-Item -Path "$($CargoPayloadFolderPath)\Xdts" -ItemType Directory -Force
 
-Move-Item -Path $CargoPayloadZipFilePath -Destination $CargoPayloadFilePath -Force
+        # Zip up all Cargo Payload folders using Ionic Zip
 
-# Clean up SCCPL folders
+        Zip -FolderToZip $CargoPayloadFolderPath.FullName -ZipFilePath $CargoPayloadZipFilePath
 
-Remove-Item -Path $CopyToRootPath.FullName -Recurse -Force
-Remove-Item -Path $CopyToWebsitePath.FullName -Recurse -Force
-Remove-Item -Path $IOActionsPath.FullName -Recurse -Force
-Remove-Item -Path $XdtsPath.FullName -Recurse -Force
-Remove-Item -Path $CargoPayloadZipFilePath -ErrorAction Ignore
+        # Move and rename the zipped file to .sccpl - create the Sitecore Cargo Payload file
 
-### Build the WDP file
+        Move-Item -Path $CargoPayloadZipFilePath -Destination $CargoPayloadFilePath -Force
 
-Import-Module $SitecoreCloudModulePath -Verbose
-Start-SitecoreAzureModulePackaging -SourceFolderPath $SourceFolderPath `
-                                    -DestinationFolderPath $DestinationFolderPath.FullName `
-                                    -CargoPayloadFolderPath $CargoPayloadFolderPath.FullName `
-                                    -AdditionalWdpContentsFolderPath $AdditionalWdpContentsFolderPath.FullName `
-                                    -ParameterXmlFolderPath $ParameterXmlFolderPath.FullName `
-                                    -ConfigFilePath $ConfigFilePath `
-                                    -Verbose
+        # Clean up SCCPL folders
 
-########################################################################
-### Create the WDP for the Data Exchange Framework module and components
-########################################################################
+        Remove-Item -Path $CopyToRootPath.FullName -Recurse -Force
+        Remove-Item -Path $CopyToWebsitePath.FullName -Recurse -Force
+        Remove-Item -Path $IOActionsPath.FullName -Recurse -Force
+        Remove-Item -Path $XdtsPath.FullName -Recurse -Force
+        Remove-Item -Path $CargoPayloadZipFilePath -ErrorAction Ignore
 
-# Initial check to see if the WDP package was already present and skip creation
+        ### Build the WDP file
 
-if (!$WdpPackagePresent){
+        Import-Module $SitecoreCloudModulePath -Verbose
+        Start-SitecoreAzureModulePackaging -SourceFolderPath $SourceFolderPath `
+                                            -DestinationFolderPath $DestinationFolderPath.FullName `
+                                            -CargoPayloadFolderPath $CargoPayloadFolderPath.FullName `
+                                            -AdditionalWdpContentsFolderPath $AdditionalWdpContentsFolderPath.FullName `
+                                            -ParameterXmlFolderPath $ParameterXmlFolderPath.FullName `
+                                            -ConfigFilePath $ConfigFilePath `
+                                            -Verbose
 
-    $SitecoreCloudModulePath = "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1"
-    $SourceFolderPath = "C:\_deployment\website_packaged"
-    $DestinationFolderPath = "C:\_deployment\website_packaged\convert to WDP\WPD"
-    $CargoPayloadFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\CargoPayloads"
-    $AdditionalWdpContentsFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\AdditionalFiles"
-    $ParameterXmlFolderPath = "C:\_deployment\website_packaged\convert to WDP\Components\MsDeployXmls"
-    $ConfigFilePath = "C:\_deployment\website_packaged\convert to WDP\Components\Configs\website_config.json"
-
-    Import-Module $SitecoreCloudModulePath -Verbose
-    Start-SitecoreAzureModulePackaging -SourceFolderPath $SourceFolderPath `
-                                       -DestinationFolderPath $DestinationFolderPath `
-                                       -CargoPayloadFolderPath $CargoPayloadFolderPath `
-                                       -AdditionalWdpContentsFolderPath $AdditionalWdpContentsFolderPath `
-                                       -ParameterXmlFolderPath $ParameterXmlFolderPath `
-                                       -ConfigFilePath $ConfigFilePath `
-                                       -Verbose
+       }
 
 }
+
+
+#### Create-WDP function explained:
+
+# -RootFolder is the physical path on the filesystem to the source folder for WDP operations that will contain the WDP JSON configuration file, the WDP XML parameters file and the folder with the module packages
+# The typical structure that should be followed is:
+#
+#    \RootFolder\module_name_module.json
+#    \RootFolder\module_name_parameters.xml
+#    \RootFolder\SourcePackage\module_installation_package.zip( or .update)
+#
+# -SitecoreCloudModulePath provides the path to the Sitecore.Cloud.Cmdlets.psm1 Azure Toolkit Powershell module (usually under \SAT\tools)
+#
+# -JsonConfigFilename is the name of your WDP JSON configuration file
+#
+# -XmlParameterFilename is the name of your XML parameter file (must match the name that is provided inside the JSON config)
+#
+# -SccplCargoFilename is the name of your Sitecore Cargo Payload package (must match the name that is provided inside the JSON config)
+#
+# -WdpPackagePresent is a boolean that skips WDP creation in case the WDP package already exists
+
+
+# Examples:
+#
+# Create-WDP -RootFolder "C:\_deployment\website_packaged_test" `
+#            -SitecoreCloudModulePath "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1" `
+#            -JsonConfigFilename "website_config" `
+#            -XmlParameterFilename "website_parameters" `
+#            -SccplCargoFilename "website_cargo" `
+#            -WdpPackagePresent $False
+#
+# Create-WDP -RootFolder "C:\Users\auzunov\Downloads\ARM_deploy\Modules\DEF" `
+#            -SitecoreCloudModulePath "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1" `
+#            -JsonConfigFilename "def_config" `
+#            -XmlParameterFilename "def_parameters" `
+#            -SccplCargoFilename "def_cargo" `
+#            -WdpPackagePresent $False
+
+Create-WDP -RootFolder "" `
+            -SitecoreCloudModulePath "" `
+            -JsonConfigFilename "" `
+            -XmlParameterFilename "" `
+            -SccplCargoFilename "" `
+            -WdpPackagePresent $False
