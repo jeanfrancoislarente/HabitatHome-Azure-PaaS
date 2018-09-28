@@ -1,12 +1,18 @@
+<#
+	This script will check the local Deploy folder defined in the cake-config.json file for an Assets folder, and create one if it doesn't exist.
+	It will then check the folder for prerequisite files as defined by the assets.json. 
+	The script will then download anything missing and extract tools so they can be used by later scripts.
+#>
+
+Param(
+    [string] $ConfigurationFile
+)
+
 ###########################
 # Find configuration files
 ###########################
 
 # Find and process cake-config.json
-Param(
-    [string] $ConfigurationFile
-)
-
 if (!(Test-Path $ConfigurationFile)) {
     Write-Host "Configuration file '$($ConfigurationFile)' not found." -ForegroundColor Red
     Write-Host  "Please ensure there is a cake-config.json configuration file at '$($cakelocation)'" -ForegroundColor Red
@@ -35,9 +41,15 @@ if (!$assetconfig) {
 ###################################
 # Paramters
 ###################################
-$downloadlist = New-Object System.Collections.Generic.List[System.Object]
-$assetsfolder = (Join-Path $config.DeployFolder assets)
 
+$foundfiles   = New-Object System.Collections.ArrayList
+$downloadlist = New-Object System.Collections.ArrayList
+$assetsfolder = (Join-Path $config.DeployFolder assets)
+$downloadrequired = $null
+
+Write-Host "Checking for prerequisite files"
+
+<#
 ####################################
 # Check for existing Files in Azure
 ####################################
@@ -52,7 +64,7 @@ $ctx = $sa.Context
 
 
 try {
-  "Verifying the existence of the current Azure container..."
+ Write-Host "Verifying the existence of the current Azure container..."
 
   # Check if the container name already exists
   Get-AzureStorageContainer -Container $containerName -Context $ctx -ErrorAction Stop
@@ -62,8 +74,8 @@ try {
 }
 catch {
 
-  "No Storage Account found in Azure"
-  "Continuing"
+ Write-Host "No Storage Account found in Azure"
+ Write-Host "Continuing"
 
   $AzureExists = $false;
 
@@ -72,7 +84,7 @@ catch {
 # Create list of items in container
 if($AzureExists){
 
-  "Gathering List of files in Azure"
+ Write-Host "Gathering List of files in Azure"
 
   $containerlist = Get-AzureStorageBlob -Container $containerName -Context $ctx -ErrorAction Stop
 
@@ -82,30 +94,74 @@ if($AzureExists){
 
   }
 }
+#>
 
 ##################################################
 # Check for existing Files in Deploy\Assets Folder
 ##################################################
 
-if (!(Test-Path $assetsfolder)) {
+Write-Host "Checking for files in" $assetsfolder
 
-  "Assets Folder does not exist"
-  "Creating Assets Folder"
+if (!(Test-Path $assetsfolder)) 
+{
+  Write-Host "Assets Folder does not exist"
+  Write-Host "Creating Assets Folder"
 
   New-Item -ItemType Directory -Force -Path $assetsfolder
-
 }
-
-"Gathering List of local files"
 
 $localassets = Get-ChildItem -path $(Join-Path $assetsfolder *) -include *.zip
 
-foreach($_ in $localassets){
 
-  $downloadlist.Add($_.name)
+foreach($_ in $localassets)
+{
+  $foundfiles.Add($_.name) | out-null
+}
 
-  }
+if($foundfiles)
+{	
+	Write-Host "Files found:"
 
+	foreach ($_ in $assetconfig.prerequisites)
+	{
+		if (($foundfiles -contains $_.fileName) -eq $true)
+		{
+			Write-Host `t $_.filename
+			continue
+		}
+		else
+		{
+			$downloadlist.Add($_.fileName) | out-null
+		}
+	}
+	
+	if($downloadlist)
+	{
+		Write-Host "Files Missing:"
+	
+		foreach ($_ in $downloadlist)
+		{
+			Write-Host `t $_
+		}
+
+		$downloadrequired = $true
+	}
+	else
+	{
+		Write-Host "All Local required files found"
+	}
+}
+else
+{
+    Write-Host "No Local files have been found"
+
+	foreach ($_ in $assetconfig.prerequisites)
+	{
+			$downloadlist.Add($_.fileName) | out-null
+	}
+
+	$downloadrequired = $true
+}
 
 
 ###########################
@@ -114,48 +170,68 @@ foreach($_ in $localassets){
 
  Import-Module .\DownloadFileWithCredentials.psm1 -Force
 
- $credentials = Get-Credential -Message "Please provide dev.sitecore.com credentials"
-
 	Function Download-Asset {
     param(   [PSCustomObject]
-        $assetename,
+        $assetfilename,
         $Credentials,
         $assetsfolder,
 		$sourceuri
     )
 
         if (!(Test-Path $assetsfolder)) {
+
+			Write-Host "Assets Folder does not exist"
+			Write-Host "Creating Assets Folder"
+
             New-Item -ItemType Directory -Force -Path $assetsfolder
         }
-       
 
-        Write-Host ("Downloading" -f $assetname )
+        Write-Host "Downloading" $assetfilename -ForegroundColor Green
 
-        if (!(Test-Path $destination)) {
 			$params = @{
                     Source      = $sourceuri
                     Destination = $assetsfolder
 					Credentials = $Credentials
-            }
+					Assetfilename   = $assetfilename
+					}
 				
             Invoke-DownloadFileWithCredentialsTask  @params  
-		}
 		
 	}
 
-foreach ($prereq in $assetconfig.prerequisites)
+if($downloadrequired)
 {
+	Write-Host "Downloading necessary files"
 
-	$prereq
-	foreach ($_ in $downloadlist)
+	$credentials = Get-Credential -Message "Please provide dev.sitecore.com credentials"
+
+	foreach ($prereq in $assetconfig.prerequisites)
 	{
-		if ($prereq.filename -eq $_.name)
+		if (($downloadlist -contains $prereq.fileName) -eq $false)
 		{
 			continue
 		}
 		else
 		{
-			Download-Asset -assetname $_.name -Credentials $Credentials -assetsfolder $assetsfolder -sourceuri $prereq.url
+			Download-Asset -assetfilename $prereq.filename -Credentials $Credentials -assetsfolder $assetsfolder -sourceuri $prereq.url
 		}
+	}
+}
+
+###########################
+# Extract Files
+###########################
+
+Write-Host "Extracting Files"
+$global:ProgressPreference = 'SilentlyContinue'
+
+write-host $localassets.name 
+
+foreach ($_ in $assetconfig.prerequisites)
+{
+	if ((($localassets.name -contains $_.fileName) -eq $true) -and ($_.extract -eq $true))
+	{
+		Write-Host "Extracting" $_.filename -ForegroundColor Green
+		Expand-Archive	-Path $(Join-path $assetsfolder $_.filename) -DestinationPath $(Join-path $assetsfolder $_.name) -force
 	}
 }

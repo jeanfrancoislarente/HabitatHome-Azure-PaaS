@@ -6,14 +6,17 @@ Function Invoke-DownloadFileWithCredentialsTask {
         [Parameter(Mandatory = $true)]
         [ValidateScript( { Test-Path -Path (Split-Path -Path $_ -Parent) })]
         [ValidateScript( { Test-Path -Path $_ -PathType Leaf -IsValid })]
-        [string]$DestinationPath,
-        [PSCredential]$Credentials
+        [string]$Destinationfolder,
+        [PSCredential]$Credentials,
+		[string]$Assetfilename
     )
 
-    if ($PSCmdlet.ShouldProcess($SourceUri, "Download $SourceUri to $DestinationPath")) {
+    if ($PSCmdlet.ShouldProcess($SourceUri, "Download $SourceUri to $Destinationfolder")) {
 
         try {
-            Write-Verbose "Downloading $SourceUri to $DestinationPath"
+            Write-Verbose "Downloading $SourceUri to $Destinationfolder"
+
+			$DestinationPath = Join-Path $Destinationfolder $Assetfilename
 
             if ($Credentials) {
                 
@@ -21,7 +24,9 @@ Function Invoke-DownloadFileWithCredentialsTask {
                 
                 $password = $Credentials.GetNetworkCredential().password
                 $loginRequest = Invoke-RestMethod -Uri https://dev.sitecore.net/api/authorization -Method Post -ContentType "application/json" -Body "{username: '$user', password: '$password'}" -SessionVariable session -UseBasicParsing
-                Invoke-WebRequest -Uri $SourceUri -OutFile $DestinationPath -WebSession $session -UseBasicParsing
+        
+				$ProgressPreference = 'SilentlyContinue'
+				Invoke-WebRequest -Uri $SourceUri -OutFile $DestinationPath -WebSession $session -UseBasicParsing
             }
 			else
 			{
