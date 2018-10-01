@@ -225,7 +225,7 @@ if($downloadrequired)
 Write-Host "Extracting Files"
 $global:ProgressPreference = 'SilentlyContinue'
 
-write-host $localassets.name 
+$localassets = Get-ChildItem -path $(Join-Path $assetsfolder *) -include *.zip
 
 foreach ($_ in $assetconfig.prerequisites)
 {
