@@ -168,7 +168,7 @@ else
 # Download Required Files
 ###########################
 
- Import-Module .\DownloadFileWithCredentials.psm1 -Force
+ Import-Module ".\DownloadFileWithCredentials\DownloadFileWithCredentials.psm1" -Force
 
 	Function Download-Asset {
     param(   [PSCustomObject]
