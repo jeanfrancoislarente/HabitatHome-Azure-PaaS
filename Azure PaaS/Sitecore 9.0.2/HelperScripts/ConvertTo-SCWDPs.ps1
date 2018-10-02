@@ -104,43 +104,41 @@ function Create-WDP ([String] $RootFolder, [String] $SitecoreCloudModulePath, [S
 
 #### Create-WDP function explained:
 
-# -RootFolder is the physical path on the filesystem to the source folder for WDP operations that will contain the WDP JSON configuration file, the WDP XML parameters file and the folder with the module packages
-# The typical structure that should be followed is:
-#
-#    \RootFolder\module_name_module.json
-#    \RootFolder\module_name_parameters.xml
-#    \RootFolder\SourcePackage\module_installation_package.zip( or .update)
-#
-# -SitecoreCloudModulePath provides the path to the Sitecore.Cloud.Cmdlets.psm1 Azure Toolkit Powershell module (usually under \SAT\tools)
-#
-# -JsonConfigFilename is the name of your WDP JSON configuration file
-#
-# -XmlParameterFilename is the name of your XML parameter file (must match the name that is provided inside the JSON config)
-#
-# -SccplCargoFilename is the name of your Sitecore Cargo Payload package (must match the name that is provided inside the JSON config)
-#
-# -WdpPackagePresent is a boolean that skips WDP creation in case the WDP package already exists
+<#
+
+ -RootFolder is the physical path on the filesystem to the source folder for WDP operations that will contain the WDP JSON configuration file, 
+ the WDP XML parameters file and the folder with the module packages
+ The typical structure that should be followed is:
+
+    \RootFolder\module_name_module.json
+    \RootFolder\module_name_parameters.xml
+    \RootFolder\SourcePackage\module_installation_package.zip( or .update)
+
+ -SitecoreCloudModulePath provides the path to the Sitecore.Cloud.Cmdlets.psm1 Azure Toolkit Powershell module (usually under \SAT\tools)
+
+ -JsonConfigFilename is the name of your WDP JSON configuration file
+
+ -XmlParameterFilename is the name of your XML parameter file (must match the name that is provided inside the JSON config)
+
+ -SccplCargoFilename is the name of your Sitecore Cargo Payload package (must match the name that is provided inside the JSON config)
+
+ -WdpPackagePresent is a boolean that skips WDP creation in case the WDP package already exists
 
 
-# Examples:
-#
-# Create-WDP -RootFolder "C:\_deployment\website_packaged_test" `
-#            -SitecoreCloudModulePath "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1" `
-#            -JsonConfigFilename "website_config" `
-#            -XmlParameterFilename "website_parameters" `
-#            -SccplCargoFilename "website_cargo" `
-#            -WdpPackagePresent $False
-#
-# Create-WDP -RootFolder "C:\Users\auzunov\Downloads\ARM_deploy\Modules\DEF" `
-#            -SitecoreCloudModulePath "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1" `
-#            -JsonConfigFilename "def_config" `
-#            -XmlParameterFilename "def_parameters" `
-#            -SccplCargoFilename "def_cargo" `
-#            -WdpPackagePresent $False
+ Examples:
 
-Create-WDP -RootFolder "" `
-            -SitecoreCloudModulePath "" `
-            -JsonConfigFilename "" `
-            -XmlParameterFilename "" `
-            -SccplCargoFilename "" `
+ Create-WDP -RootFolder "C:\_deployment\website_packaged_test" `
+            -SitecoreCloudModulePath "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1" `
+            -JsonConfigFilename "website_config" `
+            -XmlParameterFilename "website_parameters" `
+            -SccplCargoFilename "website_cargo" `
             -WdpPackagePresent $False
+
+ Create-WDP -RootFolder "C:\Users\auzunov\Downloads\ARM_deploy\Modules\DEF" `
+            -SitecoreCloudModulePath "C:\Users\auzunov\Downloads\ARM_deploy\1_Sitecore Azure Toolkit\tools\Sitecore.Cloud.Cmdlets.psm1" `
+            -JsonConfigFilename "def_config" `
+            -XmlParameterFilename "def_parameters" `
+            -SccplCargoFilename "def_cargo" `
+            -WdpPackagePresent $False
+
+#>
