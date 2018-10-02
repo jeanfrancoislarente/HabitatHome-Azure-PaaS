@@ -45,7 +45,6 @@ if (!$assetconfig) {
 $foundfiles   = New-Object System.Collections.ArrayList
 $downloadlist = New-Object System.Collections.ArrayList
 $assetsfolder = (Join-Path $config.DeployFolder assets)
-$downloadrequired = $null
 
 Write-Host "Checking for prerequisite files"
 
@@ -110,7 +109,7 @@ if (!(Test-Path $assetsfolder))
   New-Item -ItemType Directory -Force -Path $assetsfolder
 }
 
-$localassets = Get-ChildItem -path $(Join-Path $assetsfolder *) -include *.zip
+$localassets = Get-ChildItem -path $(Join-Path $assetsfolder *) -include *.zip -r
 
 
 foreach($_ in $localassets)
@@ -129,6 +128,21 @@ if($foundfiles)
 			Write-Host `t $_.filename
 			continue
 		}
+		elseif ($_.isGroup -eq "true")
+		{
+			foreach ($module in $_.modules)
+			{
+				if (($foundfiles -contains $module.fileName) -eq $true)
+				{
+					Write-Host `t $module.filename
+					continue
+				}
+				else
+				{
+					$downloadlist.Add($module.fileName) | out-null
+				}
+			}
+		}
 		else
 		{
 			$downloadlist.Add($_.fileName) | out-null
@@ -144,7 +158,6 @@ if($foundfiles)
 			Write-Host `t $_
 		}
 
-		$downloadrequired = $true
 	}
 	else
 	{
@@ -157,10 +170,20 @@ else
 
 	foreach ($_ in $assetconfig.prerequisites)
 	{
+
+		if ($_.isGroup -eq "true")
+		{
+			foreach ($module in $_.modules)
+			{
+				$downloadlist.Add($module.fileName) | out-null
+			}
+		}
+		else
+		{
 			$downloadlist.Add($_.fileName) | out-null
+		}
 	}
 
-	$downloadrequired = $true
 }
 
 
@@ -199,7 +222,7 @@ else
 		
 	}
 
-if($downloadrequired)
+if($downloadlist)
 {
 	Write-Host "Downloading necessary files"
 
@@ -207,13 +230,36 @@ if($downloadrequired)
 
 	foreach ($prereq in $assetconfig.prerequisites)
 	{
-		if (($downloadlist -contains $prereq.fileName) -eq $false)
+		if($prereq.isGroup -eq $true)
+		{
+			
+			if (!(Test-Path $(Join-Path $assetsfolder $prereq.name))) 
+			{
+				Write-Host $prereq.name "folder does not exist"
+				Write-Host "Creating" $prereq.name "Folder"
+
+				New-Item -ItemType Directory -Force -Path $(Join-Path $assetsfolder $prereq.name)
+			}
+			
+			foreach ($module in $prereq.modules)
+			{
+				if(($downloadlist -contains $module.fileName) -eq $false)
+				{
+					continue
+				}
+				else
+				{
+					Download-Asset -assetfilename $module.fileName -Credentials $Credentials -assetsfolder $(Join-Path $assetsfolder $prereq.name) -sourceuri $module.url
+				}
+			}
+		}
+		elseif (($downloadlist -contains $prereq.fileName) -eq $false)
 		{
 			continue
 		}
 		else
 		{
-			Download-Asset -assetfilename $prereq.filename -Credentials $Credentials -assetsfolder $assetsfolder -sourceuri $prereq.url
+			Download-Asset -assetfilename $prereq.fileName -Credentials $Credentials -assetsfolder $assetsfolder -sourceuri $prereq.url
 		}
 	}
 }
@@ -225,7 +271,7 @@ if($downloadrequired)
 Write-Host "Extracting Files"
 $global:ProgressPreference = 'SilentlyContinue'
 
-$localassets = Get-ChildItem -path $(Join-Path $assetsfolder *) -include *.zip
+$localassets = Get-ChildItem -path $(Join-Path $assetsfolder *) -include *.zip -r
 
 foreach ($_ in $assetconfig.prerequisites)
 {
@@ -233,5 +279,53 @@ foreach ($_ in $assetconfig.prerequisites)
 	{
 		Write-Host "Extracting" $_.filename -ForegroundColor Green
 		Expand-Archive	-Path $(Join-path $assetsfolder $_.filename) -DestinationPath $(Join-path $assetsfolder $_.name) -force
+	}
+	elseif($_.isGroup -eq $true)
+	{
+		foreach($module in $_.modules)
+		{
+			if ((($localassets.name -contains $module.fileName) -eq $true) -and ($module.extract -eq $true))
+			{
+				
+				if (!(Test-Path $(Join-Path $assetsfolder $_.name))) 
+				{
+					Write-Host $_.name "folder does not exist"
+					Write-Host "Creating" $_.name "Folder"
+
+					New-Item -ItemType Directory -Force -Path $(Join-Path $assetsfolder $_.name)
+				}
+
+				Write-Host "Extracting" $module.filename -ForegroundColor Green
+				Expand-Archive	-Path $(Join-path $assetsfolder $module.filename) -DestinationPath $(Join-path $assetsfolder $_.name) -force
+			}
+		}
+	}
+}
+
+#########################################
+# Move Grouped Assets to Correct Folders
+#########################################
+
+Write-Host "Moving Files to correct folders"
+
+foreach ($prereq in $assetconfig.prerequisites)
+{
+	if($prereq.isGroup -eq $true)
+	{
+		foreach($module in $prereq.modules)
+		{
+			if(($localassets.name -contains $module.fileName)-eq $true)
+			{
+				if((Test-Path $(Join-path $assetsfolder $(Join-Path $prereq.name $module.filename))))
+				{
+					continue
+				}
+				else
+				{
+					Write-host "Moving" $module.fileName "to" $(Join-path $assetsfolder $prereq.name)
+					$localassets.fullname -like "*\$($module.filename)" | Move-Item -destination $(Join-path $assetsfolder $(Join-Path $prereq.name $module.fileName)) -force
+				}
+			}
+		}
 	}
 }
