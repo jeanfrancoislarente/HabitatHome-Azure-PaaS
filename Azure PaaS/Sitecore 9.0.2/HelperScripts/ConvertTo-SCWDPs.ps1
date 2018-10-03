@@ -8,6 +8,7 @@
 # Mandatory parameters
 
 Param(
+    [parameter(Mandatory=$true)]
     [String] $ConfigurationFile
 )
 

@@ -5,6 +5,7 @@
 #>
 
 Param(
+	[parameter(Mandatory=$true)]
     [string] $ConfigurationFile
 )
 
