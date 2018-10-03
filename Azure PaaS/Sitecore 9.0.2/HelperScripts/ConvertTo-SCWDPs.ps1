@@ -1,9 +1,20 @@
+<#
+	This function prepares Web Deploy Package (WDP) creation, by reading through configuration files and by looking for pre-existing mandatory files for the WDP creation process itself.
+	It then generates a WDP to be used in Azure deployments. During the WDP generation process, a 3rd party zip library is used (Ionic Zip) to zip up and help generate the Sitecore
+	Cargo Payload (SCCPL) packages.
+#>
+
 ######################
 # Mandatory parameters
 
 Param(
-    [string] $ConfigurationFile = "C:\Users\auzunov\Source\Repos\HabitatHome-Azure-PaaS\Azure PaaS\Cake\cake-config.json"
+    [String] $ConfigurationFile
 )
+
+######################################
+# Call in the WDP preparation function
+
+Prepare-WDP -configFile $ConfigurationFile
 
 #################################################################
 # 3rd Party Ionic Zip function - helping create the SCCPL package
@@ -235,8 +246,3 @@ Function Prepare-WDP ([String] $configFile) {
     }
     
 }
-
-######################################
-# Call in the WDP preparation function
-
-Prepare-WDP -configFile $ConfigurationFile

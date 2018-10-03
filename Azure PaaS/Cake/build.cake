@@ -195,7 +195,7 @@ Task("Rebuild-Web-Index").Does(() => {
 });
 
 Task("Publish-YML").Does(() => {
-	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Publish-YML.ps1");
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\HelperScripts\Publish-YML.ps1");
 });
 
 Task("Azure-Build")
@@ -205,21 +205,21 @@ Task("Azure-Build")
 
 Task("Download-Prerequisites").Does(() => {
 
-	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Download-Prerequisites.ps1"args =>
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\HelperScripts\Download-Prerequisites.ps1"args =>
         {
             args.Append(configjsonfilepath);
         }););
 
 Task("ConvertTo-SCWDPs").Does(() => {
-	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\ConvertTo-SCWDPs.ps1");
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\HelperScripts\ConvertTo-SCWDPs.ps1");
 });
 
 Task("Upload-Packages").Does(() => {
-	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Upload-Packages.ps1");
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\HelperScripts\Upload-Packages.ps1");
 });
 
 Task("Azure-Deploy").Does(() => {
-	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\Utilities\Azure-Deploy.ps1");
+	StartPowershellFile ($"{configuration.projectFolder}\Azure PaaS\Sitecore 9.0.2\HelperScripts\Azure-Deploy.ps1");
 });
 
 RunTarget(target);
