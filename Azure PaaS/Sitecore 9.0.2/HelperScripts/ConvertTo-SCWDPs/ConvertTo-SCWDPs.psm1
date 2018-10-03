@@ -1,3 +1,6 @@
+######################
+# Mandatory parameters
+
 Param(
     [string] $ConfigurationFile = "C:\Users\auzunov\Source\Repos\HabitatHome-Azure-PaaS\Azure PaaS\Cake\cake-config.json"
 )
@@ -86,7 +89,7 @@ Function Create-WDP ([String] $RootFolder, [String] $SitecoreCloudModulePath, [S
     $JsonConfigFolderPath = New-Item -Path "$($ComponentsFolderPath)\Configs" -ItemType Directory -Force
     $ParameterXmlFolderPath = New-Item -Path "$($ComponentsFolderPath)\MsDeployXmls" -ItemType Directory -Force
 
-    ### Provide the required files for WDP
+    # Provide the required files for WDP
 
     $JsonConfigFilenamePath = Get-ChildItem -Path $JsonConfigFilename
 
@@ -125,7 +128,7 @@ Function Create-WDP ([String] $RootFolder, [String] $SitecoreCloudModulePath, [S
     Remove-Item -Path $XdtsPath.FullName -Recurse -Force
     Remove-Item -Path $CargoPayloadZipFilePath -ErrorAction Ignore
 
-    ### Build the WDP file
+    # Build the WDP file
 
     Import-Module $SitecoreCloudModulePath -Verbose
     Start-SitecoreAzureModulePackaging -SourceFolderPath $RootFolder `
@@ -136,13 +139,22 @@ Function Create-WDP ([String] $RootFolder, [String] $SitecoreCloudModulePath, [S
                                         -ConfigFilePath $ConfigFilePath `
                                         -Verbose
 
+    # Check for the _Data Exchange Framework 2.0.1 rev. 180108_single.scwdp.zip and rename that back (remove the underscore)
+
+    $DEFWDPFile = "_Data Exchange Framework 2.0.1 rev. 180108_single.scwdp.zip"
+                               
+    If(Test-Path -Path (Join-Path $DestinationFolderPath $DEFWDPFile) -IsValid){
+                
+        Rename-Item -Path (Join-Path $DestinationFolderPath $DEFWDPFile) -NewName "$($DestinationFolderPath)\Data Exchange Framework 2.0.1 rev. 180108_single.scwdp.zip"
+                
+    }
+
 }
 
-Function Prepare-WDP ([String] $configFile) {
+#######################################################################################
+# WDP preparation function which sets up initial components required by the WDP process
 
-    ###########################
-    # Find configuration files
-    ###########################
+Function Prepare-WDP ([String] $configFile) {
 
     # Find and process cake-config.json
 
@@ -179,11 +191,15 @@ Function Prepare-WDP ([String] $configFile) {
         throw "Error trying to load Assest File!"
 
     } 
+
+    # Assign values to required working folder paths
     
     [String] $assetsFolder = $([IO.Path]::combine($config.DeployFolder, 'assets'))
     [String] $ProjectModulesFolder = $([IO.Path]::Combine($config.ProjectFolder, 'Azure Paas', 'Sitecore 9.0.2', 'Modules'))
     [String] $SitecoreCloudModule = $([IO.Path]::combine($assetsFolder, 'Sitecore Azure Toolkit', 'tools', 'Sitecore.Cloud.Cmdlets.psm1'))
     [String] $IonicZipPath = $([IO.Path]::combine($assetsFolder, 'Sitecore Azure Toolkit', 'tools', 'DotNetZip.dll'))
+
+    # Go through the assets.json file and prepare files and paths for the conversion to WDP
 
     ForEach ($_ in $assetsConfig.prerequisites){
 
@@ -193,6 +209,25 @@ Function Prepare-WDP ([String] $configFile) {
             Get-ChildItem -Path "$($ProjectModulesFolder)\WDP Components\$($_.name)\*" -Include *.json | ForEach-Object { $WDPJsonFile = $_.FullName }
             Get-ChildItem -Path "$($ProjectModulesFolder)\WDP Components\$($_.name)\*" -Include *.xml | ForEach-Object { $WDPXMLFile = $_.FullName }
             $SccplCargoName = $WDPJsonFile.BaseName -replace "_config", "_cargo"
+
+            # Special check - if dealing with DEF try to avoid limitations of the Cloud.Cmdlets script
+
+            If($ModuleFolder -like "*Data Exchange Framework*"){
+            
+                # Check if the "Data Exchange Framework 2.0.1 rev. 180108.zip" file is present and rename it to "_Data Exchange Framework 2.0.1 rev. 180108.zip"
+
+                $DEFZipFile = "Data Exchange Framework 2.0.1 rev. 180108.zip"
+                                
+                If(Test-Path -Path (Join-Path $ModuleFolder $DEFZipFile) -IsValid){
+                
+                    Rename-Item -Path (Join-Path $ModuleFolder $DEFZipFile) -NewName "$($ModuleFolder)\_$($DEFZipFile)"
+                
+                }
+            
+            }
+
+            # Call in the WDP creation function
+
             Create-WDP -RootFolder $ModuleFolder -SitecoreCloudModulePath $SitecoreCloudModule -JsonConfigFilename $WDPJsonFile -XmlParameterFilename $WDPXMLFile -SccplCargoFilename $SccplCargoName -IonicZip $IonicZipPath
       
         }
@@ -200,5 +235,8 @@ Function Prepare-WDP ([String] $configFile) {
     }
     
 }
+
+######################################
+# Call in the WDP preparation function
 
 Prepare-WDP -configFile $ConfigurationFile

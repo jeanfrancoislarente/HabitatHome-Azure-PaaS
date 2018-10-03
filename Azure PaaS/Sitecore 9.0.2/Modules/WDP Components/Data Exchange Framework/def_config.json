@@ -7,7 +7,7 @@
         "def_cargo.sccpl"
       ],
       "embedSccpls": [],
-      "sourcePackagePattern": "Data Exchange Framework 2.0.1 rev. 180108",
+      "sourcePackagePattern": "_Data Exchange Framework 2.0.1 rev. 180108",
       "additionalWdpContentsFolders": []
     },
     {
