@@ -6,7 +6,9 @@
       "fileName": "Sitecore 9.0.2 rev. 180604 (WDP XPSingle packages).zip",
       "url": "https://dev.sitecore.net/~/media/BDF5A396761F4769B22B55A89E604C79.ashx",
       "extract": true,
+      "isWdp": false,
       "convertToWdp": false,
+      "uploadToAzure": false,
       "source": "sitecore"
     },
     {
@@ -15,7 +17,9 @@
       "fileName": "Sitecore Azure Toolkit 2.0.4 rev. 180605.zip",
       "url": "https://dev.sitecore.net/~/media/97227BC40EF74028AA1BC7B8F48909A4.ashx",
       "extract": true,
+      "isWdp": false,
       "convertToWdp": false,
+      "uploadToAzure": false,
       "source": "sitecore"
     },
     {
@@ -24,7 +28,9 @@
       "fileName": "Sitecore PowerShell Extensions-4.7.2 for Sitecore 8.scwdp.zip",
       "url": "https://dev.sitecore.net/~/media/4918E7ADAAF049F4BC7BA5B73561F24F.ashx",
       "extract": false,
+      "isWdp":  true,
       "convertToWdp": false,
+      "uploadToAzure": true,
       "source": "sitecore"
     },
     {
@@ -33,7 +39,9 @@
       "fileName": "Sitecore Experience Accelerator 1.7.1 rev. 180604 for 9.0.scwdp.zip",
       "url": "https://dev.sitecore.net/~/media/F25F1A9FB9494646A2EB494F32AACC89.ashx",
       "extract": false,
+      "isWdp": true,
       "convertToWdp": false,
+      "uploadToAzure": true,
       "source": "sitecore"
     },
     {
@@ -41,7 +49,9 @@
       "name": "Data Exchange Framework",
       "isGroup": true,
       "extract": false,
+      "isWdp": false,
       "convertToWdp": true,
+      "uploadToAzure": true,
       "modules": [
         {
           "id": "def",

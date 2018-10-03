@@ -192,7 +192,7 @@ else
 # Download Required Files
 ###########################
 
- Import-Module ".\DownloadFileWithCredentials\DownloadFileWithCredentials.psm1" -Force
+ Import-Module "$($PSScriptRoot)\DownloadFileWithCredentials\DownloadFileWithCredentials.psm1" -Force
 
 	Function Download-Asset {
     param(   [PSCustomObject]
@@ -303,19 +303,40 @@ foreach ($_ in $assetconfig.prerequisites)
 	}
 }
 
-#########################################
-# Move Grouped Assets to Correct Folders
-#########################################
+########################################################
+# Move WDP Assets (Grouped or Single) to Correct Folders
+########################################################
 
 Write-Host "Moving Files to correct folders"
 
 foreach ($prereq in $assetconfig.prerequisites)
 {
-	if($prereq.isGroup -eq $true)
+    if($prereq.isWdp -eq $true)
+    {
+		if(($localassets.name -contains $prereq.fileName) -eq $true)
+		{
+			if((Test-Path $(Join-path $assetsfolder $(Join-Path $prereq.name $prereq.filename))))
+			{
+				continue
+			}
+			else
+			{
+				Write-host "Moving" $prereq.fileName "to" $(Join-path $assetsfolder $prereq.name)
+                if (!(Test-Path $(Join-path $assetsfolder $prereq.name))) 
+				{
+					Write-Host $prereq.name "folder does not exist"
+					Write-Host "Creating" $prereq.name "Folder"
+
+					New-Item -ItemType Directory -Force -Path $(Join-Path $assetsfolder $prereq.name)
+				}
+				$localassets.fullname -like "*\$($prereq.filename)" | Move-Item -destination $(Join-path $assetsfolder $(Join-Path $prereq.name $prereq.fileName)) -force
+			}
+		}
+    } elseif($prereq.isGroup -eq $true)
 	{
 		foreach($module in $prereq.modules)
 		{
-			if(($localassets.name -contains $module.fileName)-eq $true)
+			if(($localassets.name -contains $module.fileName) -eq $true)
 			{
 				if((Test-Path $(Join-path $assetsfolder $(Join-Path $prereq.name $module.filename))))
 				{
