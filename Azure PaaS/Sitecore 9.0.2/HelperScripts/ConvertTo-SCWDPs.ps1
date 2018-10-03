@@ -12,11 +12,6 @@ Param(
     [String] $ConfigurationFile
 )
 
-######################################
-# Call in the WDP preparation function
-
-Prepare-WDP -configFile $ConfigurationFile
-
 #################################################################
 # 3rd Party Ionic Zip function - helping create the SCCPL package
 
@@ -247,3 +242,8 @@ Function Prepare-WDP ([String] $configFile) {
     }
     
 }
+
+######################################
+# Call in the WDP preparation function
+
+Prepare-WDP -configFile $ConfigurationFile

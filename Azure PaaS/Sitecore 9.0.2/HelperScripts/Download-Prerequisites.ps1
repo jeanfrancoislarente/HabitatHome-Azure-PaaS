@@ -40,7 +40,7 @@ if (!$assetconfig) {
 } 
 
 ###################################
-# Paramters
+# Parameters
 ###################################
 
 $foundfiles   = New-Object System.Collections.ArrayList
